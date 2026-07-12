@@ -30,6 +30,8 @@ app.use('/api/allocations', allocationRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/maintenance-requests', maintenanceRoutes);
 app.use('/api/audit-cycles', auditRoutes);
+// Backwards-compatible mount for older frontend routes using `/api/audits`.
+app.use('/api/audits', auditRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);

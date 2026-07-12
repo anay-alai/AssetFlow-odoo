@@ -12,7 +12,35 @@ exports.getCycles = async (req, res, next) => {
 
 exports.getCycleItems = async (req, res, next) => {
     try {
-        const items = await AuditItem.findAll({ where: { audit_cycle_id: req.params.id }, include: ['Asset', 'Auditor'] });
+        let items = await AuditItem.findAll({ where: { audit_cycle_id: req.params.id }, include: ['Asset', 'Auditor'] });
+
+        // If no audit items yet (e.g. cycle was created outside the API or before migration),
+        // auto-populate from Assets matching the cycle scope to ensure the frontend shows assets.
+        if (!items.length) {
+            const t = await sequelize.transaction();
+            try {
+                const cycle = await AuditCycle.findByPk(req.params.id, { transaction: t });
+                if (cycle) {
+                    const where = {};
+                    if (cycle.scope_department_id) where.department_id = cycle.scope_department_id;
+                    if (cycle.scope_location) where.location = { [Op.like]: `%${cycle.scope_location}%` };
+                    const assets = await Asset.findAll({ where, transaction: t });
+                    if (assets.length) {
+                        await AuditItem.bulkCreate(
+                            assets.map((a) => ({ audit_cycle_id: cycle.id, asset_id: a.id, verification_status: 'Pending' })),
+                            { transaction: t }
+                        );
+                    }
+                }
+                await t.commit();
+            } catch (err) {
+                await t.rollback();
+                // fall through and return empty list if population failed
+            }
+
+            items = await AuditItem.findAll({ where: { audit_cycle_id: req.params.id }, include: ['Asset', 'Auditor'] });
+        }
+
         res.json({ success: true, data: items });
     } catch (error) { next(error); }
 };
@@ -74,6 +102,32 @@ exports.verifyItem = async (req, res, next) => {
         }
 
         // Gate to assigned auditors (admin / asset_manager may override).
+        if (!['admin', 'asset_manager'].includes(req.user.role)) {
+            const isAuditor = await cycle.hasAuditor(req.user.id);
+            if (!isAuditor) {
+                return res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'You are not an assigned auditor on this cycle.' } });
+            }
+        }
+
+        await item.update({ verification_status, notes, verified_at: new Date(), auditor_id: req.user.id });
+        await logActivity({ user_id: req.user.id, action: 'audit.item_verified', entity_type: 'AuditItem', entity_id: item.id, metadata: { verification_status } });
+        res.json({ success: true, data: item });
+    } catch (error) { next(error); }
+};
+
+// Find an AuditItem by audit_cycle_id + asset_id and verify it (convenience for frontend)
+exports.verifyItemByAsset = async (req, res, next) => {
+    try {
+        const { verification_status, notes } = req.body;
+        const { cycleId, assetId } = req.params;
+        const item = await AuditItem.findOne({ where: { audit_cycle_id: cycleId, asset_id: assetId }, include: [{ model: AuditCycle }] });
+        if (!item) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Audit item not found for given asset and cycle' } });
+
+        const cycle = item.AuditCycle || (await AuditCycle.findByPk(item.audit_cycle_id));
+        if (cycle.status === 'Closed') {
+            return res.status(409).json({ success: false, error: { code: 'CYCLE_CLOSED', message: 'This audit cycle is closed; items can no longer be edited.' } });
+        }
+
         if (!['admin', 'asset_manager'].includes(req.user.role)) {
             const isAuditor = await cycle.hasAuditor(req.user.id);
             if (!isAuditor) {

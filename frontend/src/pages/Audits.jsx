@@ -13,17 +13,26 @@ export default function Audits() {
 
     const { data: cycles } = useQuery({
         queryKey: ['audit-cycles'],
-        queryFn: async () => (await api.get('/audits/cycles')).data.data,
+        queryFn: async () => (await api.get('/audit-cycles')).data.data,
+    });
+
+    const { data: items } = useQuery({
+        queryKey: ['audit-items', cycleId],
+        queryFn: async () => (await api.get(`/audit-cycles/${cycleId}/items`)).data.data,
+        enabled: !!cycleId,
     });
 
     const verifyMutation = useMutation({
-        mutationFn: async (data) => api.put(`/audits/items/${data.item_id}/verify`, data),
-        onSuccess: () => { toast.success('Item verified'); setAssetId(''); setNotes(''); },
+        mutationFn: async (data) => api.put(`/audit-cycles/${data.cycle_id}/items/${data.asset_id}/verify`, {
+            verification_status: data.verification_status,
+            notes: data.notes,
+        }),
+        onSuccess: () => { toast.success('Item verified'); setAssetId(''); setNotes(''); queryClient.invalidateQueries(['audit-items', cycleId]); queryClient.invalidateQueries(['audit-cycles']); },
         onError: () => toast.error('Verification failed'),
     });
 
     const closeMutation = useMutation({
-        mutationFn: async (id) => api.put(`/audits/${id}/close`),
+        mutationFn: async (id) => api.put(`/audit-cycles/${id}/close`),
         onSuccess: () => { toast.success('Audit cycle closed'); queryClient.invalidateQueries(['audit-cycles']); },
         onError: () => toast.error('Closure failed'),
     });
@@ -53,14 +62,21 @@ export default function Audits() {
                     </div>
 
                     <div style={{ marginBottom: '16px' }}>
-                        <label className="label">Asset ID (or Tag)</label>
-                        <input type="text" className="input" value={assetId} onChange={e => setAssetId(e.target.value)} required />
+                        <label className="label">Select Asset</label>
+                        <select className="input" value={assetId} onChange={e => setAssetId(e.target.value)}>
+                            <option value="">Select an asset...</option>
+                            {items?.map(it => (
+                                <option key={it.id} value={it.Asset?.id || it.asset_id}>
+                                    {it.Asset ? `${it.Asset.id} — ${it.Asset.tag || it.Asset.name || 'unnamed'}` : `Asset #${it.asset_id}`}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div style={{ marginBottom: '16px' }}>
                         <label className="label">Status</label>
                         <div style={{ display: 'flex', gap: '10px' }}>
-                            {['Present', 'Missing'].map(s => {
+                            {['Present', 'Missing', 'Damaged'].map(s => {
                                 const active = status === s;
                                 const color = s === 'Present' ? 'var(--success)' : 'var(--danger)';
                                 return (
@@ -73,7 +89,7 @@ export default function Audits() {
                                         color: active ? color : 'var(--text-secondary)',
                                         borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                                         transition: 'all 0.2s',
-                                    }}>{s === 'Present' ? '✓ Present' : '✕ Missing'}</button>
+                                    }}>{s === 'Present' ? '✓ Present' : s === 'Missing' ? '✕ Missing' : '⚠ Damaged'}</button>
                                 );
                             })}
                         </div>
@@ -86,7 +102,10 @@ export default function Audits() {
 
                     <button
                         className="btn btn-primary"
-                        onClick={() => verifyMutation.mutate({ item_id: assetId, status, notes })}
+                        onClick={() => {
+                            const mapping = { 'Present': 'Verified', 'Missing': 'Missing', 'Damaged': 'Damaged' };
+                            verifyMutation.mutate({ cycle_id: cycleId, asset_id: assetId, verification_status: mapping[status] || 'Pending', notes });
+                        }}
                         disabled={!cycleId || !assetId}
                         style={{ width: '100%', padding: '12px' }}>
                         Record Verification
