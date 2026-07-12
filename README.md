@@ -159,52 +159,58 @@ Role assignment happens in exactly one place: **Admin → Organization Setup →
 
 ### Prerequisites
 
-- Node.js ≥ 18
-- MySQL ≥ 8
-- npm or yarn
-- Docker & Docker Compose (optional, for containerized local setup)
+- **Node.js 20 or 22 LTS** (avoid pre-release builds like v26 — they break Vite's native bindings and cause other subtle issues)
+- A MySQL 8-compatible database (this project targets **TiDB Cloud**, which requires TLS)
+- npm
 
-### Local Setup (without Docker)
+### Local Setup
 
 ```bash
 # Clone
-git clone <repo-url> assetflow
-cd assetflow
+git clone <repo-url> AssetFlow-odoo
+cd AssetFlow-odoo
 
-# Backend
+# 1. Backend
 cd backend
 npm install
-cp .env.example .env      # fill in DB credentials + JWT secret
-npx sequelize-cli db:create
-npx sequelize-cli db:migrate
-npx sequelize-cli db:seed:all
-npm run dev                # starts on http://localhost:5000
+cp .env.example .env         # fill in DB credentials + JWT secret (see below)
+npm run db:setup             # creates all tables from schema.sql + seeds demo data
+npm run dev                  # starts on http://localhost:5050
 
-# Frontend (new terminal)
+# 2. Frontend (new terminal)
 cd frontend
 npm install
-cp .env.example .env       # set VITE_API_BASE_URL=http://localhost:5000/api
-npm run dev                # starts on http://localhost:5173
+cp .env.example .env         # set VITE_API_URL=http://localhost:5050/api
+npm run dev                  # starts on http://localhost:5173
 ```
 
-### With Docker Compose
+> **macOS note:** port 5000 is occupied by the AirPlay Receiver (AirTunes), which
+> silently answers requests and breaks the API. This project uses **port 5050**
+> instead — keep `PORT=5050` in `backend/.env` and `VITE_API_URL` pointed at it.
 
-```bash
-docker-compose up --build
-```
+### Database scripts
 
-This spins up MySQL, the backend API, and (optionally) a frontend container as defined in `docker-compose.yml`.
+All run from the `backend/` folder:
+
+| Command | What it does |
+|---|---|
+| `npm run db:setup` | **Drops & recreates** all tables from `schema.sql`, then seeds. Use for a fresh start. |
+| `npm run db:migrate` | Non-destructive ALTER migration — upgrades an existing DB to the latest schema **without losing data**. |
+| `npm run db:reset-demo` | Resets every seeded demo account's password to `password123`. |
+| `npm run db:reset-admin` | Resets/creates just the admin account. |
 
 ### Default Seeded Accounts
 
-| Role | Email | Password |
-|---|---|---|
-| Admin | admin@assetflow.com | Admin@123 |
-| Asset Manager | manager@assetflow.com | Manager@123 |
-| Department Head | depthead@assetflow.com | DeptHead@123 |
-| Employee | employee@assetflow.com | Employee@123 |
+All seeded accounts use the password **`password123`**.
 
-> Change these before any non-local deployment.
+| Role | Email |
+|---|---|
+| Admin | `admin@example.com` |
+| Asset Manager | `manager1@example.com`, `manager2@example.com` |
+| Department Head | `headeng@example.com` (Engineering), `headhr@example.com` (HR) |
+| Employee | `emp1@example.com` … `emp5@example.com` |
+
+> If any role can't log in, run `npm run db:reset-demo`. Change all credentials before any non-local deployment.
 
 ---
 
@@ -212,35 +218,44 @@ This spins up MySQL, the backend API, and (optionally) a frontend container as d
 
 **backend/.env**
 ```
-DB_HOST=localhost
-DB_PORT=3306
+DB_HOST=gateway01.<region>.prod.aws.tidbcloud.com   # or localhost for local MySQL
+DB_PORT=4000                                         # TiDB uses 4000; local MySQL uses 3306
 DB_NAME=assetflow
-DB_USER=root
-DB_PASSWORD=yourpassword
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
 JWT_SECRET=replace-with-a-long-random-string
 JWT_EXPIRY=1d
-PORT=5000
+PORT=5050                                            # avoid 5000 on macOS (AirPlay)
+ENABLE_CRON=false                                    # set "true" to run background jobs
 ```
 
 **frontend/.env**
 ```
-VITE_API_BASE_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5050/api
 ```
+
+> The Sequelize connection enables TLS (`ssl.rejectUnauthorized: true`) because TiDB Cloud
+> requires it. For a plain local MySQL without TLS, relax that in `backend/src/config/db.js`.
 
 ---
 
 ## Database Setup
 
-The authoritative schema lives in `database/schema.sql`. It defines all tables, foreign keys, native `ENUM` status columns, and indexes on the hot query paths (`asset_tag`, `serial_number`, booking time ranges, allocation status). Sequelize migrations in `backend/src/migrations/` mirror this schema for use with `sequelize-cli`.
+The authoritative schema lives in `database/schema.sql`. It defines all tables, foreign keys, native `ENUM` status columns, and indexes on the hot query paths (`asset_tag`, `serial_number`, booking time ranges, allocation status). Seed data is in `database/seed.sql`. Incremental, non-destructive changes are kept as ALTER scripts in `database/migrations/`.
 
-To reset the database entirely:
+The Sequelize models map to these tables directly (each model pins its `tableName`); there is no ORM-managed migration runner. Manage the database with the npm scripts:
 
 ```bash
 cd backend
-npx sequelize-cli db:drop
-npx sequelize-cli db:create
-npx sequelize-cli db:migrate
-npx sequelize-cli db:seed:all
+
+# Fresh start (DESTRUCTIVE — drops & recreates everything, then seeds)
+npm run db:setup
+
+# Upgrade an existing database in place (keeps data)
+npm run db:migrate
+
+# Fix demo logins if a role can't sign in
+npm run db:reset-demo
 ```
 
 ---
@@ -277,26 +292,21 @@ All endpoints are prefixed with `/api`. Full request/response contracts live in 
 ## Running Tests
 
 ```bash
-# Backend
 cd backend
-npm test                 # Jest + Supertest
-
-# Frontend
-cd frontend
-npm test                 # React Testing Library
+npm test                 # Jest
 ```
 
-Priority test coverage: allocation conflict rejection, booking overlap matrix (exact/partial/back-to-back), signup role integrity, maintenance status gating, audit-close cascade behavior.
+Current coverage: the booking overlap matrix (exact match, new-inside-existing, existing-inside-new, partial overlaps, back-to-back before/after, no-overlap same/different day) plus window validation — 12 tests against the pure `services/booking.service.js` logic, no DB required.
 
 ---
 
 ## Scheduled Jobs
 
-Defined in `backend/src/jobs/`, registered via `node-cron` on server start:
+Defined in `backend/src/jobs/`, registered via `node-cron` on server start **only when `ENABLE_CRON=true`** (so tests/CI can disable them):
 
-- `overdueReturnsCheck.js` — hourly scan for allocations past expected return date
-- `overdueBookingsCheck.js` — flags bookings that should have started/ended but weren't actioned
-- `bookingReminder.js` — sends a reminder notification ahead of a booking's start time
+- `overdueJob.js` — hourly scan for allocations past expected return date (idempotent — one alert per item per day)
+- `overdueBookingsCheck.js` — every 15 min, auto-completes bookings whose end time has passed
+- `bookingReminder.js` — every 15 min, notifies bookers of bookings starting within 30 minutes
 
 ---
 
@@ -321,14 +331,15 @@ Defined in `backend/src/jobs/`, registered via `node-cron` on server start:
 
 Refer [LICENSE](LICENSE) file for more details.
 
-## current bugs
-- [x] admin must not change his own position
-- [ ] Audit reports are not visible
-- [ ] maintenance flow how will we make it active.
-- [ ] New assets are is avaliable to add in the Asset manager
-- [ ] Employee add feature add Department Head 
-- [ ] perform audit if assigned to it
-- 
+## Status / recently resolved
+- [x] Admin must not change his own position
+- [x] Audit discrepancy reports visible (View Report modal + auto-generated discrepancy list)
+- [x] Maintenance flow active end-to-end (Pending → Approved → Technician Assigned → In Progress → Resolved)
+- [x] Asset registration available to Asset Manager (auto tag `AF-XXXX`, QR, filters)
+- [x] Perform-audit gated to assigned auditors (admin/asset_manager override)
+- [x] Signup + forgot-password; role promotion only via Admin → Employee Directory
+- [x] Transfer workflow: request → approve/reject → re-allocated
+
 
 | Feature             |    Admin    | Asset Manager |    Department Head   |              Employee              |
 | ------------------- | :---------: | :-----------: | :------------------: | :--------------------------------: |
