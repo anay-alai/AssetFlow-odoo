@@ -88,10 +88,10 @@ export default function Bookings() {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                             {[['Start Time', startTime, setStartTime], ['End Time', endTime, setEndTime]].map(([label, val, set]) => (
-                                <div key={label}>
+                                <div key={label} style={{ minWidth: 0 }}>
                                     <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px' }}>{label}</label>
                                     <input type="datetime-local" value={val} onChange={e => set(e.target.value)} required
-                                        style={{ ...inputStyle }}
+                                        style={{ ...inputStyle, minWidth: 0 }}
                                         onFocus={e => e.target.style.borderColor = 'var(--accent)'}
                                         onBlur={e => e.target.style.borderColor = 'var(--border)'} />
                                 </div>
