@@ -31,4 +31,4 @@ cron.schedule('0 * * * *', async () => {
     } catch (error) {
         console.error('Overdue job error:', error);
     }
-});\n
+});

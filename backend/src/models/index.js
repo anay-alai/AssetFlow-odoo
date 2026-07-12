@@ -66,4 +66,4 @@ module.exports = {
   sequelize,
   User, Department, AssetCategory, Asset, Allocation, TransferRequest,
   Booking, MaintenanceRequest, AuditCycle, AuditItem, Notification, ActivityLog
-};\n
+};

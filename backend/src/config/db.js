@@ -4,13 +4,23 @@ dotenv.config();
 
 const sequelize = new Sequelize(
     process.env.DB_NAME || 'assetflow',
-    process.env.DB_USER || 'user',
-    process.env.DB_PASSWORD || 'password',
+    process.env.DB_USER || 'root',
+    process.env.DB_PASSWORD || '',
     {
         host: process.env.DB_HOST || 'localhost',
         dialect: 'mysql',
         port: process.env.DB_PORT || 3306,
-        logging: false, // Set to console.log to see SQL queries
+        logging: false,
+        define: {
+            underscored: true,      // maps createdAt → created_at, updatedAt → updated_at
+            freezeTableName: false, // still pluralises table names automatically
+        },
+        dialectOptions: {
+            ssl: {
+                rejectUnauthorized: true,
+                minVersion: 'TLSv1.2',
+            },
+        },
     }
 );
 

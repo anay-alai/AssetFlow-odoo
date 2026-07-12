@@ -51,4 +51,4 @@ exports.cancelBooking = async (req, res, next) => {
         await booking.update({ status: 'Cancelled' });
         res.json({ success: true, data: booking });
     } catch (error) { next(error); }
-};\n
+};

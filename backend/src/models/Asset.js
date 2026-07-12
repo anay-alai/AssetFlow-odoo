@@ -13,4 +13,4 @@ const Asset = sequelize.define('Asset', {
     photo_url: { type: DataTypes.STRING },
     documents: { type: DataTypes.JSON },
 }, { timestamps: true });
-module.exports = Asset;\n
+module.exports = Asset;

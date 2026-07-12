@@ -6,4 +6,4 @@ const { authenticate } = require('../middleware/authMiddleware');
 router.get('/', authenticate, notificationController.getNotifications);
 router.put('/:id/read', authenticate, notificationController.markAsRead);
 
-module.exports = router;\n
+module.exports = router;

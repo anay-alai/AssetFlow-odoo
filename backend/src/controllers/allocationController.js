@@ -106,4 +106,4 @@ exports.rejectTransferRequest = async (req, res, next) => {
         await tr.update({ status: 'Rejected', approved_by: req.user.id });
         res.json({ success: true, data: tr });
     } catch (error) { next(error); }
-};\n
+};

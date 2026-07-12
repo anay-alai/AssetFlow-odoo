@@ -7,4 +7,4 @@ const Allocation = sequelize.define('Allocation', {
     return_condition_notes: { type: DataTypes.TEXT },
     status: { type: DataTypes.ENUM('active', 'returned'), defaultValue: 'active' },
 }, { timestamps: true });
-module.exports = Allocation;\n
+module.exports = Allocation;

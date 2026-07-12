@@ -10,4 +10,4 @@ router.post('/transfer-requests', authenticate, authorize('admin', 'asset_manage
 router.put('/transfer-requests/:id/approve', authenticate, authorize('admin', 'asset_manager', 'dept_head'), allocationController.approveTransferRequest);
 router.put('/transfer-requests/:id/reject', authenticate, authorize('admin', 'asset_manager', 'dept_head'), allocationController.rejectTransferRequest);
 
-module.exports = router;\n
+module.exports = router;

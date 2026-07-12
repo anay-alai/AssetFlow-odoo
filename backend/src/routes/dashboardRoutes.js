@@ -7,4 +7,4 @@ router.get('/kpis', authenticate, dashboardController.getKPIs);
 router.get('/recent-activity', authenticate, dashboardController.getRecentActivity);
 router.get('/overdue', authenticate, dashboardController.getOverdue);
 
-module.exports = router;\n
+module.exports = router;

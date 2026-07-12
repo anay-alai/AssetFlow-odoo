@@ -7,4 +7,4 @@ router.get('/resources/:id/bookings', authenticate, bookingController.getResourc
 router.post('/', authenticate, bookingController.createBooking);
 router.put('/:id/cancel', authenticate, bookingController.cancelBooking);
 
-module.exports = router;\n
+module.exports = router;

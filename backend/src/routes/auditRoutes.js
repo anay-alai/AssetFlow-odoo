@@ -8,4 +8,4 @@ router.post('/:id/auditors', authenticate, authorize('admin', 'asset_manager'), 
 router.put('/items/:id/verify', authenticate, auditController.verifyItem);
 router.put('/:id/close', authenticate, authorize('admin', 'asset_manager'), auditController.closeCycle);
 
-module.exports = router;\n
+module.exports = router;

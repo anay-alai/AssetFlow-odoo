@@ -7,4 +7,4 @@ const Notification = sequelize.define('Notification', {
     related_entity_type: { type: DataTypes.STRING(100) },
     related_entity_id: { type: DataTypes.INTEGER },
 }, { timestamps: true });
-module.exports = Notification;\n
+module.exports = Notification;

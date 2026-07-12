@@ -8,4 +8,4 @@ const MaintenanceRequest = sequelize.define('MaintenanceRequest', {
     technician_name: { type: DataTypes.STRING },
     resolution_notes: { type: DataTypes.TEXT },
 }, { timestamps: true });
-module.exports = MaintenanceRequest;\n
+module.exports = MaintenanceRequest;

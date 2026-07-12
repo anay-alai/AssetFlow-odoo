@@ -54,4 +54,4 @@ exports.getAssetHistory = async (req, res, next) => {
         const maintenance = await MaintenanceRequest.findAll({ where: { asset_id: req.params.id }, include: ['Raiser', 'Approver'] });
         res.json({ success: true, data: { allocations, maintenance } });
     } catch (error) { next(error); }
-};\n
+};

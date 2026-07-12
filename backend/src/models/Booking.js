@@ -6,4 +6,4 @@ const Booking = sequelize.define('Booking', {
     status: { type: DataTypes.ENUM('Upcoming', 'Ongoing', 'Completed', 'Cancelled'), defaultValue: 'Upcoming' },
     purpose: { type: DataTypes.TEXT },
 }, { timestamps: true });
-module.exports = Booking;\n
+module.exports = Booking;

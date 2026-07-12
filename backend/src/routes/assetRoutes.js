@@ -10,4 +10,4 @@ router.get('/:id', authenticate, assetController.getAssetById);
 router.get('/:id/history', authenticate, assetController.getAssetHistory);
 router.put('/:id', authenticate, authorize('admin', 'asset_manager'), assetController.updateAsset);
 
-module.exports = router;\n
+module.exports = router;

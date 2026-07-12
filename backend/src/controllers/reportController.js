@@ -18,4 +18,4 @@ exports.getMaintenanceFrequency = async (req, res, next) => {
         });
         res.json({ success: true, data: stats });
     } catch (error) { next(error); }
-};\n
+};

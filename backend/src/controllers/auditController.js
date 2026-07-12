@@ -54,4 +54,4 @@ exports.closeCycle = async (req, res, next) => {
         await t.rollback();
         next(error);
     }
-};\n
+};

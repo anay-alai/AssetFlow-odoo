@@ -6,4 +6,4 @@ const { authenticate } = require('../middleware/authMiddleware');
 router.get('/utilization', authenticate, reportController.getUtilization);
 router.get('/maintenance-frequency', authenticate, reportController.getMaintenanceFrequency);
 
-module.exports = router;\n
+module.exports = router;

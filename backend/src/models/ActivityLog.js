@@ -6,4 +6,4 @@ const ActivityLog = sequelize.define('ActivityLog', {
     entity_id: { type: DataTypes.INTEGER, allowNull: false },
     metadata: { type: DataTypes.JSON },
 }, { timestamps: true });
-module.exports = ActivityLog;\n
+module.exports = ActivityLog;

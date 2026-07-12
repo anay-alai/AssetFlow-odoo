@@ -8,4 +8,4 @@ router.put('/:id/approve', authenticate, authorize('admin', 'asset_manager'), ma
 router.put('/:id/reject', authenticate, authorize('admin', 'asset_manager'), maintenanceController.rejectRequest);
 router.put('/:id/resolve', authenticate, authorize('admin', 'asset_manager'), maintenanceController.resolveRequest);
 
-module.exports = router;\n
+module.exports = router;

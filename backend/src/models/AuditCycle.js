@@ -7,4 +7,4 @@ const AuditCycle = sequelize.define('AuditCycle', {
     end_date: { type: DataTypes.DATEONLY, allowNull: false },
     status: { type: DataTypes.ENUM('Open', 'Closed'), defaultValue: 'Open' },
 }, { timestamps: true });
-module.exports = AuditCycle;\n
+module.exports = AuditCycle;

@@ -5,4 +5,4 @@ const AuditItem = sequelize.define('AuditItem', {
     notes: { type: DataTypes.TEXT },
     verified_at: { type: DataTypes.DATE },
 }, { timestamps: true });
-module.exports = AuditItem;\n
+module.exports = AuditItem;

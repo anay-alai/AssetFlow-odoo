@@ -18,4 +18,4 @@ exports.markAsRead = async (req, res, next) => {
         await notification.update({ is_read: true });
         res.json({ success: true, data: notification });
     } catch (error) { next(error); }
-};\n
+};
