@@ -162,16 +162,28 @@ export default function OrgSetup() {
                                     </td>
                                     {user?.role === 'admin' && (
                                         <td style={{ padding: '10px 16px' }}>
-                                            <select
-                                                defaultValue={emp.role}
-                                                onChange={e => updateRole(emp.id, e.target.value)}
-                                                style={{ padding: '6px 10px', background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12px', cursor: 'pointer' }}
-                                            >
-                                                <option value="employee">Employee</option>
-                                                <option value="dept_head">Dept Head</option>
-                                                <option value="asset_manager">Asset Manager</option>
-                                                <option value="admin">Admin</option>
-                                            </select>
+                                            {emp.id === user?.id ? (
+                                                <span title="You cannot change your own role" style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: '5px',
+                                                    padding: '6px 12px', borderRadius: '6px', fontSize: '12px',
+                                                    fontWeight: 600, background: '#ef444415',
+                                                    color: '#ef4444', border: '1px solid #ef444430',
+                                                    cursor: 'not-allowed', userSelect: 'none',
+                                                }}>
+                                                    🔒 Admin (You)
+                                                </span>
+                                            ) : (
+                                                <select
+                                                    defaultValue={emp.role}
+                                                    onChange={e => updateRole(emp.id, e.target.value)}
+                                                    style={{ padding: '6px 10px', background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12px', cursor: 'pointer' }}
+                                                >
+                                                    <option value="employee">Employee</option>
+                                                    <option value="dept_head">Dept Head</option>
+                                                    <option value="asset_manager">Asset Manager</option>
+                                                    <option value="admin">Admin</option>
+                                                </select>
+                                            )}
                                         </td>
                                     )}
                                 </tr>
