@@ -18,7 +18,7 @@ exports.getKPIs = async (req, res, next) => {
             MaintenanceRequest.count({
                 where: {
                     status: { [Op.in]: ['Approved', 'Technician Assigned', 'In Progress'] },
-                    updated_at: { [Op.between]: [startOfToday, endOfToday] },
+                    updatedAt: { [Op.between]: [startOfToday, endOfToday] },
                 },
             }),
             Booking.count({ where: { status: { [Op.in]: ['Upcoming', 'Ongoing'] } } }),
