@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { Toaster } from 'react-hot-toast';
 
 import Layout from './components/Layout';
@@ -28,6 +29,7 @@ export default function App() {
     return (
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
+                <NotificationProvider>
                 <Toaster position="top-right" toastOptions={{ style: { background: '#1e2130', color: '#fff', border: '1px solid #2a2d3e' } }} />
                 <Router>
                     <Routes>
@@ -46,6 +48,7 @@ export default function App() {
                         </Route>
                     </Routes>
                 </Router>
+                </NotificationProvider>
             </AuthProvider>
         </QueryClientProvider>
     );

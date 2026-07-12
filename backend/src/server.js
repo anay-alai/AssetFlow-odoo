@@ -1,17 +1,18 @@
+require('dotenv').config();
 const app = require('./app');
 const sequelize = require('./config/db');
-require('dotenv').config();
+const { registerJobs } = require('./jobs');
 
 const PORT = process.env.PORT || 5000;
-
-// Initialize Cron Jobs
-require('./jobs/overdueJob');
 
 async function startServer() {
     try {
         await sequelize.authenticate();
         console.log('Database connection has been established successfully.');
-        
+
+        // Register background cron jobs (guarded by ENABLE_CRON).
+        registerJobs();
+
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         });

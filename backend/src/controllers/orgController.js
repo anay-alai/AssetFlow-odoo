@@ -39,11 +39,17 @@ const createCategory = async (req, res, next) => {
 
 const getEmployees = async (req, res, next) => {
     try {
-        const { page = 1, limit = 20 } = req.query;
+        const { page = 1, limit = 20, department_id, role, status } = req.query;
         const offset = (page - 1) * limit;
-        
+
+        const where = {};
+        if (department_id) where.department_id = department_id;
+        if (role) where.role = role;
+        if (status) where.status = status;
+
         const { count, rows } = await User.findAndCountAll({
-            attributes: { exclude: ['password_hash'] },
+            where,
+            attributes: { exclude: ['password_hash', 'reset_token_hash', 'reset_token_expires'] },
             include: [Department],
             limit: parseInt(limit),
             offset: parseInt(offset)

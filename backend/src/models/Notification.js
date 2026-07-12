@@ -6,5 +6,5 @@ const Notification = sequelize.define('Notification', {
     is_read: { type: DataTypes.BOOLEAN, defaultValue: false },
     related_entity_type: { type: DataTypes.STRING(100) },
     related_entity_id: { type: DataTypes.INTEGER },
-}, { timestamps: true });
+}, { timestamps: true, createdAt: 'created_at', updatedAt: false });
 module.exports = Notification;

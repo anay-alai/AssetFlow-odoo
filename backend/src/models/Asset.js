@@ -10,7 +10,9 @@ const Asset = sequelize.define('Asset', {
     location: { type: DataTypes.STRING },
     is_bookable: { type: DataTypes.BOOLEAN, defaultValue: false },
     status: { type: DataTypes.ENUM('Available', 'Allocated', 'Reserved', 'Under Maintenance', 'Lost', 'Retired', 'Disposed'), defaultValue: 'Available' },
+    prior_status: { type: DataTypes.ENUM('Available', 'Allocated', 'Reserved', 'Under Maintenance', 'Lost', 'Retired', 'Disposed') },
     photo_url: { type: DataTypes.STRING },
+    qr_code: { type: DataTypes.TEXT },
     documents: { type: DataTypes.JSON },
 }, { timestamps: true });
 module.exports = Asset;

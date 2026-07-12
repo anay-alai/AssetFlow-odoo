@@ -14,6 +14,7 @@ const auditRoutes = require('./routes/auditRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const activityLogRoutes = require('./routes/activityLogRoutes');
 
 const app = express();
 
@@ -32,12 +33,32 @@ app.use('/api/audit-cycles', auditRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
+
+// Serve uploaded photos/documents.
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.get('/api/health', (req, res) => {
     res.json({ success: true, message: 'AssetFlow API is running' });
 });
 
 app.use((err, req, res, next) => {
+    // Multer upload errors
+    if (err && err.name === 'MulterError') {
+        return res.status(400).json({ success: false, error: { code: 'UPLOAD_ERROR', message: err.message } });
+    }
+    // Sequelize validation / unique-constraint errors
+    if (err && (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError')) {
+        return res.status(400).json({
+            success: false,
+            error: { code: 'VALIDATION_ERROR', message: err.message, details: (err.errors || []).map((e) => e.message) },
+        });
+    }
+    if (err && err.message && err.message.startsWith('Unsupported file type')) {
+        return res.status(400).json({ success: false, error: { code: 'UPLOAD_ERROR', message: err.message } });
+    }
+
     console.error(err.stack);
     res.status(500).json({
         success: false,

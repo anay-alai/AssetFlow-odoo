@@ -6,5 +6,16 @@ const User = sequelize.define('User', {
     password_hash: { type: DataTypes.STRING, allowNull: false },
     role: { type: DataTypes.ENUM('admin', 'asset_manager', 'dept_head', 'employee'), defaultValue: 'employee' },
     status: { type: DataTypes.ENUM('active', 'inactive'), defaultValue: 'active' },
-}, { timestamps: true });
+    reset_token_hash: { type: DataTypes.STRING },
+    reset_token_expires: { type: DataTypes.DATE },
+}, {
+    timestamps: true,
+    validate: {
+        emailFormat() {
+            if (this.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)) {
+                throw new Error('Invalid email format');
+            }
+        },
+    },
+});
 module.exports = User;
