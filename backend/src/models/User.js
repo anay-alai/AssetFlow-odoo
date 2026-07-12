@@ -9,6 +9,7 @@ const User = sequelize.define('User', {
     reset_token_hash: { type: DataTypes.STRING },
     reset_token_expires: { type: DataTypes.DATE },
 }, {
+    tableName: 'Users',
     timestamps: true,
     validate: {
         emailFormat() {

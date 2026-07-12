@@ -12,6 +12,14 @@ const AuditItem = require('./AuditItem');
 const Notification = require('./Notification');
 const ActivityLog = require('./ActivityLog');
 
+// Explicit join model so its table name stays PascalCase (schema: AuditAuditors),
+// instead of being snake_cased to audit_auditors by the global `underscored` option.
+const { DataTypes } = require('sequelize');
+const AuditAuditors = sequelize.define('AuditAuditors', {
+    audit_cycle_id: { type: DataTypes.INTEGER },
+    user_id: { type: DataTypes.INTEGER },
+}, { tableName: 'AuditAuditors', timestamps: false });
+
 // Department & User (cyclic)
 Department.belongsTo(User, { as: 'Head', foreignKey: 'head_user_id' });
 User.hasMany(Department, { as: 'HeadedDepartments', foreignKey: 'head_user_id' });
@@ -50,8 +58,8 @@ Asset.hasMany(MaintenanceRequest, { foreignKey: 'asset_id' });
 // Audit
 AuditCycle.belongsTo(Department, { as: 'ScopeDepartment', foreignKey: 'scope_department_id' });
 AuditCycle.belongsTo(User, { as: 'Creator', foreignKey: 'created_by' });
-AuditCycle.belongsToMany(User, { as: 'Auditors', through: 'AuditAuditors', foreignKey: 'audit_cycle_id' });
-User.belongsToMany(AuditCycle, { as: 'AssignedAudits', through: 'AuditAuditors', foreignKey: 'user_id' });
+AuditCycle.belongsToMany(User, { as: 'Auditors', through: AuditAuditors, foreignKey: 'audit_cycle_id' });
+User.belongsToMany(AuditCycle, { as: 'AssignedAudits', through: AuditAuditors, foreignKey: 'user_id' });
 
 AuditItem.belongsTo(AuditCycle, { foreignKey: 'audit_cycle_id' });
 AuditCycle.hasMany(AuditItem, { foreignKey: 'audit_cycle_id' });

@@ -7,5 +7,5 @@ const MaintenanceRequest = sequelize.define('MaintenanceRequest', {
     status: { type: DataTypes.ENUM('Pending', 'Approved', 'Rejected', 'Technician Assigned', 'In Progress', 'Resolved'), defaultValue: 'Pending' },
     technician_name: { type: DataTypes.STRING },
     resolution_notes: { type: DataTypes.TEXT },
-}, { tableName: 'MaintenanceRequests', timestamps: true });
+}, { timestamps: true });
 module.exports = MaintenanceRequest;
