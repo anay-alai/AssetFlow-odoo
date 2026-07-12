@@ -59,13 +59,16 @@ app.use((err, req, res, next) => {
         return res.status(400).json({ success: false, error: { code: 'UPLOAD_ERROR', message: err.message } });
     }
 
+    // Surface the underlying DB error message (Sequelize wraps it in err.parent/err.original).
+    const sqlMessage = (err.parent && err.parent.sqlMessage) || (err.original && err.original.message);
+    console.error('[error]', err.name, '-', sqlMessage || err.message);
     console.error(err.stack);
     res.status(500).json({
         success: false,
         error: {
             code: 'INTERNAL_SERVER_ERROR',
             message: 'An unexpected error occurred',
-            details: err.message
+            details: sqlMessage || err.message
         }
     });
 });
