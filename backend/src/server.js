@@ -13,15 +13,18 @@ async function startServer() {
         // Register background cron jobs (guarded by ENABLE_CRON).
         registerJobs();
 
-        const server = app.listen(PORT, "0.0.0.0", () => {
+        const server = app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         });
-        server.on('error', (err) => console.error('HTTP server error:', err.message));
-
-        // Keep-alive safety net: on some non-standard Node builds the process can
-        // exit right after binding the port. This no-op timer guarantees the event
-        // loop stays alive so the server keeps serving.
-        setInterval(() => {}, 1 << 30);
+        server.on('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+                console.error(`Port ${PORT} is already in use by another process.`);
+                console.error(`Free it with:  lsof -ti:${PORT} | xargs kill -9`);
+            } else {
+                console.error('HTTP server error:', err.message);
+            }
+            process.exit(1);
+        });
     } catch (error) {
         console.error('Unable to connect to the database:', error);
         process.exit(1);
