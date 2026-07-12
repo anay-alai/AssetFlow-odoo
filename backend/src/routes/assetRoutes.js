@@ -14,6 +14,7 @@ router.get('/', authenticate, assetController.getAssets);
 router.get('/search', authenticate, assetController.searchAssets);
 router.post('/', authenticate, authorize('admin', 'asset_manager'), assetUploads, assetController.createAsset);
 router.get('/:id', authenticate, assetController.getAssetById);
+router.get('/:id/qr', authenticate, assetController.getAssetQr);
 router.get('/:id/history', authenticate, assetController.getAssetHistory);
 router.get('/:id/allocation-history', authenticate, allocationController.getAllocationHistory);
 router.put('/:id', authenticate, authorize('admin', 'asset_manager'), assetController.updateAsset);

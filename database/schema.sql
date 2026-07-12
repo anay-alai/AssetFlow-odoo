@@ -156,7 +156,7 @@ CREATE TABLE AuditCycles (
     scope_department_id INT,
     scope_location VARCHAR(255),
     start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    end_date DATE,
     status ENUM('Open', 'Closed') DEFAULT 'Open',
     created_by INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

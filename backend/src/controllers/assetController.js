@@ -80,6 +80,21 @@ exports.createAsset = async (req, res, next) => {
     }
 };
 
+// Return the asset's QR code data URI, generating + backfilling it if missing
+// (seeded assets don't have one until first requested).
+exports.getAssetQr = async (req, res, next) => {
+    try {
+        const asset = await Asset.findByPk(req.params.id);
+        if (!asset) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Asset not found' } });
+        let qr = asset.qr_code;
+        if (!qr) {
+            qr = await generateQrCode({ asset_tag: asset.asset_tag, id: asset.id });
+            await asset.update({ qr_code: qr });
+        }
+        res.json({ success: true, data: { qr, asset_tag: asset.asset_tag } });
+    } catch (error) { next(error); }
+};
+
 exports.getAssetById = async (req, res, next) => {
     try {
         const asset = await Asset.findByPk(req.params.id, { include: [AssetCategory, Department] });

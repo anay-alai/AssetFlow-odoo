@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Zap, Mail, Lock, AlertCircle } from 'lucide-react';
 
@@ -121,7 +121,7 @@ export default function Login() {
                         </div>
                     </div>
 
-                    <div style={{ marginBottom: '26px' }}>
+                    <div style={{ marginBottom: '10px' }}>
                         <label className="label">Password</label>
                         <div style={{ position: 'relative' }}>
                             <Lock size={15} color="var(--text-secondary)" style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', zIndex: 1 }} />
@@ -136,11 +136,19 @@ export default function Login() {
                         </div>
                     </div>
 
+                    <div style={{ textAlign: 'right', marginBottom: '22px' }}>
+                        <Link to="/forgot-password" style={{ fontSize: '12.5px', color: 'var(--accent)', fontWeight: 500 }}>Forgot password?</Link>
+                    </div>
+
                     <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: '100%', padding: '13px', fontSize: '14px' }}>
                         {loading && <span className="spinner" />}
                         {loading ? 'Signing in…' : 'Sign in'}
                     </button>
                 </form>
+
+                <p style={{ textAlign: 'center', marginTop: '18px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                    New here? <Link to="/signup" style={{ color: 'var(--accent)', fontWeight: 600 }}>Create an account</Link>
+                </p>
 
                 <div style={{
                     marginTop: '26px', padding: '14px 16px',

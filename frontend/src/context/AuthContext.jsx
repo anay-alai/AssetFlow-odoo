@@ -25,9 +25,20 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         const { data } = await api.post('/auth/login', { email, password });
-        console.log(data)
         localStorage.setItem('token', data.data.token);
         setUser(data.data.user);
+    };
+
+    // Signup ALWAYS creates an Employee (role is enforced server-side).
+    const signup = async ({ name, email, password, department_id }) => {
+        await api.post('/auth/signup', { name, email, password, department_id: department_id || null });
+        // Log the new employee straight in.
+        await login(email, password);
+    };
+
+    const forgotPassword = async (email) => {
+        const { data } = await api.post('/auth/forgot-password', { email });
+        return data;
     };
 
     const logout = () => {
@@ -36,7 +47,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, signup, forgotPassword, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

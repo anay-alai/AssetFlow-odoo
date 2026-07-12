@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
-import { Package, Hash, MapPin, Search, Plus, X } from 'lucide-react';
+import { Package, Hash, MapPin, Search, Plus, X, QrCode, History as HistoryIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -21,7 +21,20 @@ export default function Assets() {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [isRegistering, setIsRegistering] = useState(false);
-    
+    const [selected, setSelected] = useState(null);
+
+    // Detail: merged history + QR (only fetched when a card is opened)
+    const { data: history } = useQuery({
+        queryKey: ['asset-history', selected?.id],
+        queryFn: async () => (await api.get(`/assets/${selected.id}/history`)).data.data,
+        enabled: !!selected,
+    });
+    const { data: qr } = useQuery({
+        queryKey: ['asset-qr', selected?.id],
+        queryFn: async () => (await api.get(`/assets/${selected.id}/qr`)).data.data,
+        enabled: !!selected,
+    });
+
     // Form state
     const [formData, setFormData] = useState({
         name: '', category_id: '', serial_number: '', acquisition_date: '',
@@ -110,7 +123,7 @@ export default function Assets() {
                     {assets?.map((asset, i) => {
                         const color = statusColors[asset.status] || statusColors['Available'];
                         return (
-                            <div key={asset.id} className={`card card-hover animate-in d-${Math.min(i % 6 + 1, 6)}`} style={{ padding: '22px', cursor: 'pointer' }}>
+                            <div key={asset.id} onClick={() => setSelected(asset)} className={`card card-hover animate-in d-${Math.min(i % 6 + 1, 6)}`} style={{ padding: '22px', cursor: 'pointer' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                                     <div>
                                         <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '4px', fontFamily: 'var(--font-display)', letterSpacing: '-0.01em' }}>{asset.name}</div>
@@ -152,6 +165,58 @@ export default function Assets() {
                             No assets found.
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Asset Detail Drawer */}
+            {selected && (
+                <div onClick={() => setSelected(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div className="card" onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: '560px', maxHeight: '88vh', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px' }}>
+                            <div>
+                                <h2 className="section-title" style={{ marginBottom: '2px' }}>{selected.name}</h2>
+                                <span className="mono" style={{ fontSize: '12px', color: 'var(--accent)' }}>{selected.asset_tag}</span>
+                            </div>
+                            <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={20} /></button>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '18px', marginBottom: '22px' }}>
+                            {/* QR */}
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ background: '#fff', borderRadius: '10px', padding: '8px' }}>
+                                    {qr?.qr ? <img src={qr.qr} alt="QR" style={{ width: '100%', display: 'block' }} /> : <div className="skeleton" style={{ height: '124px' }} />}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '11px', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                                    <QrCode size={12} /> Scan tag
+                                </div>
+                            </div>
+                            {/* Facts */}
+                            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div><strong style={{ color: 'var(--text-primary)' }}>Status:</strong> {selected.status}</div>
+                                <div><strong style={{ color: 'var(--text-primary)' }}>Category:</strong> {selected.AssetCategory?.name || '—'}</div>
+                                <div><strong style={{ color: 'var(--text-primary)' }}>Serial:</strong> <span className="mono">{selected.serial_number || '—'}</span></div>
+                                <div><strong style={{ color: 'var(--text-primary)' }}>Location:</strong> {selected.location || '—'}</div>
+                                <div><strong style={{ color: 'var(--text-primary)' }}>Acquired:</strong> {selected.acquisition_date || '—'}{selected.acquisition_cost ? ` · $${selected.acquisition_cost}` : ''}</div>
+                                {selected.is_bookable && <span className="badge" style={{ background: 'rgba(129,140,248,0.14)', color: 'var(--accent)', width: 'fit-content' }}>⚡ Bookable</span>}
+                            </div>
+                        </div>
+
+                        {/* Merged history */}
+                        <h3 className="section-title" style={{ fontSize: '13px', marginBottom: '12px' }}><HistoryIcon size={15} color="var(--accent)" /> History</h3>
+                        {history?.length ? (
+                            <div style={{ position: 'relative', paddingLeft: '14px', borderLeft: '2px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                                {history.map((ev, i) => (
+                                    <div key={i} style={{ position: 'relative' }}>
+                                        <span style={{ position: 'absolute', left: '-20px', top: '3px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)' }} />
+                                        <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{ev.description}</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{ev.date ? new Date(ev.date).toLocaleString() : ''}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>No allocation or maintenance history yet.</p>
+                        )}
+                    </div>
                 </div>
             )}
 

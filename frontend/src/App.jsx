@@ -7,6 +7,8 @@ import { Toaster } from 'react-hot-toast';
 
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import OrgSetup from './pages/OrgSetup';
 import Assets from './pages/Assets';
@@ -50,6 +52,8 @@ export default function App() {
                 <Router>
                     <Routes>
                         <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
                         <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
                             <Route index element={<Dashboard />} />
                             <Route path="org-setup" element={<OrgSetup />} />

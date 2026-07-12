@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
-import { Bell, Info, Wrench, Calendar, ArrowRightLeft, AlertTriangle } from 'lucide-react';
+import { Bell, Info, Wrench, Calendar, ArrowRightLeft, AlertTriangle, ScrollText, CheckCheck } from 'lucide-react';
 
 const typeIcons = {
     'Asset Assigned': Info,
@@ -27,11 +27,12 @@ const typeColors = {
     'Audit Discrepancy': '#fbbf24',
 };
 
-const TABS = ['All', 'Alerts', 'Approvals', 'Bookings'];
+const TABS = ['All', 'Alerts', 'Approvals', 'Bookings', 'Activity Log'];
 
 export default function Notifications() {
     const [activeTab, setActiveTab] = useState('All');
     const queryClient = useQueryClient();
+    const isLog = activeTab === 'Activity Log';
 
     const { data: notifications } = useQuery({
         queryKey: ['notifications'],
@@ -39,8 +40,20 @@ export default function Notifications() {
         refetchInterval: 30000,
     });
 
+    // Full audit trail (who did what, when) — Screen 10.
+    const { data: activityLogs } = useQuery({
+        queryKey: ['activity-logs'],
+        queryFn: async () => (await api.get('/activity-logs?limit=50')).data.data,
+        enabled: isLog,
+    });
+
     const markReadMutation = useMutation({
         mutationFn: (id) => api.put(`/notifications/${id}/read`),
+        onSuccess: () => queryClient.invalidateQueries(['notifications']),
+    });
+
+    const markAllRead = useMutation({
+        mutationFn: () => api.put('/notifications/mark-all-read'),
         onSuccess: () => queryClient.invalidateQueries(['notifications']),
     });
 
@@ -75,15 +88,45 @@ export default function Notifications() {
             </div>
 
             {/* Tabs */}
-            <div className="tabs animate-in d-1" style={{ marginBottom: '22px' }}>
-                {TABS.map(tab => (
-                    <button key={tab} className={`tab${activeTab === tab ? ' active' : ''}`} onClick={() => setActiveTab(tab)}>
-                        {tab}
+            <div className="animate-in d-1" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px', gap: '12px', flexWrap: 'wrap' }}>
+                <div className="tabs">
+                    {TABS.map(tab => (
+                        <button key={tab} className={`tab${activeTab === tab ? ' active' : ''}`} onClick={() => setActiveTab(tab)}>
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+                {!isLog && unreadCount > 0 && (
+                    <button className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => markAllRead.mutate()}>
+                        <CheckCheck size={15} /> Mark all read
                     </button>
-                ))}
+                )}
             </div>
 
+            {/* Activity Log view */}
+            {isLog && (
+                <div className="card animate-in d-2" style={{ padding: 0, overflow: 'hidden' }}>
+                    <table className="table">
+                        <thead><tr><th>Who</th><th>Action</th><th>Entity</th><th>When</th></tr></thead>
+                        <tbody>
+                            {activityLogs?.map(log => (
+                                <tr key={log.id}>
+                                    <td style={{ fontWeight: 500 }}>{log.User?.name || `User #${log.user_id}`}</td>
+                                    <td className="mono" style={{ color: 'var(--accent)', fontSize: '12px' }}>{log.action}</td>
+                                    <td style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{log.entity_type} #{log.entity_id}</td>
+                                    <td style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{new Date(log.created_at).toLocaleString()}</td>
+                                </tr>
+                            ))}
+                            {!activityLogs?.length && (
+                                <tr><td colSpan={4} style={{ color: 'var(--text-secondary)' }}>No activity recorded yet.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
             {/* Notification list */}
+            {!isLog && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {filtered.length === 0 && (
                     <div className="card empty-state animate-in d-2">
@@ -129,6 +172,7 @@ export default function Notifications() {
                     );
                 })}
             </div>
+            )}
         </div>
     );
 }

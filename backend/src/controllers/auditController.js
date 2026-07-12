@@ -49,8 +49,17 @@ exports.createCycle = async (req, res, next) => {
     const t = await sequelize.transaction();
     try {
         const { name, scope_department_id, scope_location, start_date, end_date } = req.body;
+        // Coerce empty strings to null — MySQL DATE columns reject '' ("Invalid date").
         const cycle = await AuditCycle.create(
-            { name, scope_department_id, scope_location, start_date, end_date, created_by: req.user.id },
+            {
+                name,
+                scope_department_id: scope_department_id || null,
+                scope_location: scope_location || null,
+                start_date: start_date || null,
+                // Live DB has end_date NOT NULL; default a blank end date to the start date.
+                end_date: end_date || start_date || null,
+                created_by: req.user.id,
+            },
             { transaction: t }
         );
 
