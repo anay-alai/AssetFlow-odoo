@@ -320,3 +320,7 @@ Defined in `backend/src/jobs/`, registered via `node-cron` on server start:
 ## License
 
 Refer [LICENSE](LICENSE) file for more details.
+
+## current bugs
+-[] admin must not change his own position
+-[] 

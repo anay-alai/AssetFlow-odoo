@@ -13,7 +13,7 @@ const sequelize = new Sequelize(
         logging: false,
         define: {
             underscored: true,      // maps createdAt → created_at, updatedAt → updated_at
-            freezeTableName: false, // still pluralises table names automatically
+            freezeTableName: true,  // always use the explicit tableName from each model
         },
         dialectOptions: {
             ssl: {
