@@ -348,3 +348,53 @@ textarea.input { resize: vertical; }
   background: linear-gradient(135deg, rgba(99,102,241,0.9), rgba(139,92,246,0.9));
   box-shadow: 0 4px 18px rgba(99,102,241,0.35);
 }
+
+/* ============ CALENDAR ============ */
+
+/* Slide-in booking panel */
+.cal-panel-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+.cal-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 201;
+  width: 380px;
+  background: #0d0f1c;
+  border-left: 1px solid var(--border);
+  box-shadow: -12px 0 48px rgba(0,0,0,0.6);
+  overflow-y: auto;
+  animation: slideInRight 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* Event popover */
+.cal-popover {
+  position: absolute;
+  z-index: 300;
+  width: 280px;
+  background: #12141f;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.7);
+  padding: 16px;
+  animation: scaleIn 0.18s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Month cell hover */
+.cal-month-cell {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 6px;
+  cursor: pointer;
+  min-height: 90px;
+  transition: background 0.15s;
+}
+.cal-month-cell:hover { background: rgba(99,102,241,0.05); }
+.cal-month-cell.today { background: rgba(99,102,241,0.08); }
+.cal-month-cell.other-month { opacity: 0.4; }
+
