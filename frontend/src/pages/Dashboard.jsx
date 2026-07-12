@@ -2,7 +2,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { Box, CheckCircle, Wrench, Layers, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
+import { Box, CheckCircle, Wrench, Layers, TrendingUp, AlertTriangle, Clock, Calendar, ArrowLeftRight, RotateCcw } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const KpiCard = ({ label, value, icon: Icon, color, subtext }) => (
     <div style={{
@@ -67,11 +68,31 @@ export default function Dashboard() {
             </div>
 
             {/* KPI Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-                <KpiCard label="Total Assets" value={isLoading ? '...' : kpis?.totalAssets} icon={Layers} color="#6366f1" />
-                <KpiCard label="Available" value={isLoading ? '...' : kpis?.availableAssets} icon={CheckCircle} color="#10b981" subtext="Ready to allocate" />
-                <KpiCard label="Allocated" value={isLoading ? '...' : kpis?.allocatedAssets} icon={Box} color="#3b82f6" subtext="Currently in use" />
-                <KpiCard label="Under Maintenance" value={isLoading ? '...' : kpis?.maintenanceAssets} icon={Wrench} color="#f59e0b" subtext="Being serviced" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+                <KpiCard label="Assets Available" value={isLoading ? '...' : kpis?.assetsAvailable} icon={CheckCircle} color="#10b981" subtext="Ready to allocate" />
+                <KpiCard label="Assets Allocated" value={isLoading ? '...' : kpis?.assetsAllocated} icon={Box} color="#3b82f6" subtext="Currently in use" />
+                <KpiCard label="Maintenance Today" value={isLoading ? '...' : kpis?.maintenanceToday} icon={Wrench} color="#f59e0b" subtext="Active work orders" />
+                <KpiCard label="Active Bookings" value={isLoading ? '...' : kpis?.activeBookings} icon={Calendar} color="#6366f1" subtext="Upcoming & ongoing" />
+                <KpiCard label="Pending Transfers" value={isLoading ? '...' : kpis?.pendingTransfers} icon={ArrowLeftRight} color="#a855f7" subtext="Awaiting approval" />
+                <KpiCard label="Upcoming Returns" value={isLoading ? '...' : kpis?.upcomingReturns} icon={RotateCcw} color="#ec4899" subtext="Due in 7 days" />
+            </div>
+
+            {/* Quick Actions */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
+                {[
+                    { label: 'Register Asset', to: '/assets', icon: Layers, color: '#6366f1' },
+                    { label: 'Book Resource', to: '/bookings', icon: Calendar, color: '#10b981' },
+                    { label: 'Raise Maintenance', to: '/maintenance', icon: Wrench, color: '#f59e0b' },
+                ].map(({ label, to, icon: Icon, color }) => (
+                    <Link key={label} to={to} style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '12px 18px', borderRadius: '10px',
+                        background: 'var(--bg-card)', border: '1px solid var(--border)',
+                        color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500, textDecoration: 'none',
+                    }}>
+                        <Icon size={16} color={color} /> {label}
+                    </Link>
+                ))}
             </div>
 
             {/* Overdue Alerts */}
@@ -130,9 +151,9 @@ export default function Dashboard() {
                 {kpis && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {[
-                            { label: 'Allocated', value: kpis.allocatedAssets, total: kpis.totalAssets, color: '#3b82f6' },
-                            { label: 'Available', value: kpis.availableAssets, total: kpis.totalAssets, color: '#10b981' },
-                            { label: 'Under Maintenance', value: kpis.maintenanceAssets, total: kpis.totalAssets, color: '#f59e0b' },
+                            { label: 'Allocated', value: kpis.assetsAllocated, total: kpis.totalAssets, color: '#3b82f6' },
+                            { label: 'Available', value: kpis.assetsAvailable, total: kpis.totalAssets, color: '#10b981' },
+                            { label: 'Under Maintenance', value: kpis.assetsUnderMaintenance, total: kpis.totalAssets, color: '#f59e0b' },
                         ].map(({ label, value, total, color }) => {
                             const pct = total > 0 ? Math.round((value / total) * 100) : 0;
                             return (

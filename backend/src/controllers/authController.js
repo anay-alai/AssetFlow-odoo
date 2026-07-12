@@ -1,7 +1,13 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const { validationResult } = require('express-validator');
 const { User, Department } = require('../models');
+
+// Stubbed mail sender — logs in dev; swap in a real provider later.
+function sendResetEmail(email, token) {
+    console.log(`[mail:stub] Password reset for ${email}. Token: ${token}`);
+}
 
 const signup = async (req, res, next) => {
     try {
@@ -25,8 +31,7 @@ const signup = async (req, res, next) => {
             }
         }
 
-        const salt = await bcrypt.genSalt(10);
-        const password_hash = await bcrypt.hash(password, salt);
+        const password_hash = await bcrypt.hash(password, 12);
 
         const newUser = await User.create({
             name,
@@ -93,4 +98,43 @@ const me = async (req, res, next) => {
     }
 };
 
-module.exports = { signup, login, me };
+const forgotPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ where: { email } });
+        // Always respond 200 to avoid leaking which emails exist.
+        if (user) {
+            const rawToken = crypto.randomBytes(32).toString('hex');
+            const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+            user.reset_token_hash = tokenHash;
+            user.reset_token_expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+            await user.save();
+            sendResetEmail(email, rawToken);
+        }
+        res.json({ success: true, message: 'If that email exists, a reset link has been sent.' });
+    } catch (error) { next(error); }
+};
+
+const resetPassword = async (req, res, next) => {
+    try {
+        const { token, password } = req.body;
+        if (!token || !password) {
+            return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'token and password are required' } });
+        }
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+        const { Op } = require('sequelize');
+        const user = await User.findOne({
+            where: { reset_token_hash: tokenHash, reset_token_expires: { [Op.gt]: new Date() } },
+        });
+        if (!user) {
+            return res.status(400).json({ success: false, error: { code: 'INVALID_TOKEN', message: 'Reset token is invalid or expired' } });
+        }
+        user.password_hash = await bcrypt.hash(password, 12);
+        user.reset_token_hash = null;
+        user.reset_token_expires = null;
+        await user.save();
+        res.json({ success: true, message: 'Password has been reset. You may now log in.' });
+    } catch (error) { next(error); }
+};
+
+module.exports = { signup, login, me, forgotPassword, resetPassword };
