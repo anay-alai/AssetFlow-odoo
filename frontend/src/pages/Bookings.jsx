@@ -18,6 +18,14 @@ export default function Bookings() {
     const [purpose, setPurpose] = useState('');
     const [overlapError, setOverlapError] = useState(null);
 
+    const { data: bookableAssets = [] } = useQuery({
+        queryKey: ['bookable-assets'],
+        queryFn: async () => {
+            const res = await api.get('/assets', { params: { limit: 200 } });
+            return (res.data.data || []).filter((a) => a.is_bookable);
+        },
+    });
+
     const bookMutation = useMutation({
         mutationFn: async (data) => api.post('/bookings', data),
         onSuccess: () => { toast.success('Resource booked!'); setResourceId(''); setStartTime(''); setEndTime(''); setPurpose(''); setOverlapError(null); },
@@ -57,17 +65,27 @@ export default function Bookings() {
                     )}
 
                     <form onSubmit={e => { e.preventDefault(); bookMutation.mutate({ resource_asset_id: resourceId, start_time: startTime, end_time: endTime, purpose }); }}>
-                        {[
-                            { label: 'Resource (Asset ID)', val: resourceId, set: setResourceId, type: 'number' },
-                            { label: 'Purpose', val: purpose, set: setPurpose, type: 'text' },
-                        ].map(({ label, val, set, type }) => (
-                            <div key={label} style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px' }}>{label}</label>
-                                <input type={type} value={val} onChange={e => set(e.target.value)} required style={inputStyle}
-                                    onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-                                    onBlur={e => e.target.style.borderColor = 'var(--border)'} />
-                            </div>
-                        ))}
+                        <div style={{ marginBottom: '14px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px' }}>Resource</label>
+                            <select value={resourceId} onChange={e => setResourceId(e.target.value)} required style={inputStyle}
+                                onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                                onBlur={e => e.target.style.borderColor = 'var(--border)'}>
+                                <option value="" disabled>
+                                    {bookableAssets.length ? 'Select a bookable resource…' : 'No bookable assets found'}
+                                </option>
+                                {bookableAssets.map(a => (
+                                    <option key={a.id} value={a.id}>
+                                        {a.asset_tag} — {a.name}{a.location ? ` (${a.location})` : ''}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div style={{ marginBottom: '14px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px' }}>Purpose</label>
+                            <input type="text" value={purpose} onChange={e => setPurpose(e.target.value)} style={inputStyle}
+                                onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                                onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                        </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                             {[['Start Time', startTime, setStartTime], ['End Time', endTime, setEndTime]].map(([label, val, set]) => (
                                 <div key={label}>
