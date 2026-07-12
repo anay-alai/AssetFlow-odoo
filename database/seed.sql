@@ -8,16 +8,16 @@ INSERT INTO Departments (name) VALUES
 
 -- Users (passwords are 'password123' hashed with bcrypt salt rounds 10)
 INSERT INTO Users (name, email, password_hash, role, department_id) VALUES 
-('Admin User', 'admin@example.com', '$2b$10$wE0v7V5y0eT2Ua7D4j9YHez7V.6K0C.h8vWb6KqO/Kq8m.kEa8xHq', 'admin', NULL),
-('Asset Manager 1', 'manager1@example.com', '$2b$10$wE0v7V5y0eT2Ua7D4j9YHez7V.6K0C.h8vWb6KqO/Kq8m.kEa8xHq', 'asset_manager', 3),
-('Asset Manager 2', 'manager2@example.com', '$2b$10$wE0v7V5y0eT2Ua7D4j9YHez7V.6K0C.h8vWb6KqO/Kq8m.kEa8xHq', 'asset_manager', 3),
-('Dept Head Eng', 'headeng@example.com', '$2b$10$wE0v7V5y0eT2Ua7D4j9YHez7V.6K0C.h8vWb6KqO/Kq8m.kEa8xHq', 'dept_head', 1),
-('Dept Head HR', 'headhr@example.com', '$2b$10$wE0v7V5y0eT2Ua7D4j9YHez7V.6K0C.h8vWb6KqO/Kq8m.kEa8xHq', 'dept_head', 2),
-('Employee 1', 'emp1@example.com', '$2b$10$wE0v7V5y0eT2Ua7D4j9YHez7V.6K0C.h8vWb6KqO/Kq8m.kEa8xHq', 'employee', 1),
-('Employee 2', 'emp2@example.com', '$2b$10$wE0v7V5y0eT2Ua7D4j9YHez7V.6K0C.h8vWb6KqO/Kq8m.kEa8xHq', 'employee', 1),
-('Employee 3', 'emp3@example.com', '$2b$10$wE0v7V5y0eT2Ua7D4j9YHez7V.6K0C.h8vWb6KqO/Kq8m.kEa8xHq', 'employee', 2),
-('Employee 4', 'emp4@example.com', '$2b$10$wE0v7V5y0eT2Ua7D4j9YHez7V.6K0C.h8vWb6KqO/Kq8m.kEa8xHq', 'employee', 3),
-('Employee 5', 'emp5@example.com', '$2b$10$wE0v7V5y0eT2Ua7D4j9YHez7V.6K0C.h8vWb6KqO/Kq8m.kEa8xHq', 'employee', 1);
+('Admin User', 'admin@example.com', '$2b$10$lmq.M1sfl6J9TdfY8hXTfeoCdxcoY72tyz/G8Vt0dciJmZZ48jiLy', 'admin', NULL),
+('Asset Manager 1', 'manager1@example.com', '$2b$10$lmq.M1sfl6J9TdfY8hXTfeoCdxcoY72tyz/G8Vt0dciJmZZ48jiLy', 'asset_manager', 3),
+('Asset Manager 2', 'manager2@example.com', '$2b$10$lmq.M1sfl6J9TdfY8hXTfeoCdxcoY72tyz/G8Vt0dciJmZZ48jiLy', 'asset_manager', 3),
+('Dept Head Eng', 'headeng@example.com', '$2b$10$lmq.M1sfl6J9TdfY8hXTfeoCdxcoY72tyz/G8Vt0dciJmZZ48jiLy', 'dept_head', 1),
+('Dept Head HR', 'headhr@example.com', '$2b$10$lmq.M1sfl6J9TdfY8hXTfeoCdxcoY72tyz/G8Vt0dciJmZZ48jiLy', 'dept_head', 2),
+('Employee 1', 'emp1@example.com', '$2b$10$lmq.M1sfl6J9TdfY8hXTfeoCdxcoY72tyz/G8Vt0dciJmZZ48jiLy', 'employee', 1),
+('Employee 2', 'emp2@example.com', '$2b$10$lmq.M1sfl6J9TdfY8hXTfeoCdxcoY72tyz/G8Vt0dciJmZZ48jiLy', 'employee', 1),
+('Employee 3', 'emp3@example.com', '$2b$10$lmq.M1sfl6J9TdfY8hXTfeoCdxcoY72tyz/G8Vt0dciJmZZ48jiLy', 'employee', 2),
+('Employee 4', 'emp4@example.com', '$2b$10$lmq.M1sfl6J9TdfY8hXTfeoCdxcoY72tyz/G8Vt0dciJmZZ48jiLy', 'employee', 3),
+('Employee 5', 'emp5@example.com', '$2b$10$lmq.M1sfl6J9TdfY8hXTfeoCdxcoY72tyz/G8Vt0dciJmZZ48jiLy', 'employee', 1);
 
 -- Update Department heads
 UPDATE Departments SET head_user_id = 4 WHERE id = 1;
