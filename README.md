@@ -322,5 +322,32 @@ Defined in `backend/src/jobs/`, registered via `node-cron` on server start:
 Refer [LICENSE](LICENSE) file for more details.
 
 ## current bugs
--[] admin must not change his own position
--[] 
+- [x] admin must not change his own position
+- [ ] Audit reports are not visible
+- [ ] maintenance flow how will we make it active.
+- [ ] New assets are is avaliable to add in the Asset manager
+- [ ] Employee add feature add Department Head 
+- [ ] perform audit if assigned to it
+- 
+
+| Feature             |    Admin    | Asset Manager |    Department Head   |              Employee              |
+| ------------------- | :---------: | :-----------: | :------------------: | :--------------------------------: |
+| Login               |      ✅      |       ✅       |           ✅          |                  ✅                 |
+| Register Asset      |      ❌      |       ✅       |           ❌          |                  ❌                 |
+| View Assets         |      ✅      |       ✅       |      Department      |                 Own                |
+| Allocate Asset      |      ❌      |       ✅       | Request/Approve Dept |                  ❌                 |
+| Transfer Asset      |      ❌      |       ✅       |     Approve Dept     |               Request              |
+| Return Asset        |      ❌      |    Approve    |         View         |               Request              |
+| Raise Maintenance   |      ❌      |       ✅       |           ❌          |                  ✅                 |
+| Approve Maintenance |      ❌      |       ✅       |           ❌          |                  ❌                 |
+| Book Resource       |      ✅      |       ✅       |           ✅          |                  ✅                 |
+| Approve Booking     |      ❌      |       ❌       |           ❌          | ❌ *(automatic overlap validation)* |
+| Create Departments  |      ✅      |       ❌       |           ❌          |                  ❌                 |
+| Create Categories   |      ✅      |       ❌       |           ❌          |                  ❌                 |
+| Manage Employees    |      ✅      |       ❌       |           ❌          |                  ❌                 |
+| Promote Roles       |      ✅      |       ❌       |           ❌          |                  ❌                 |
+| Create Audit Cycle  |      ✅      |       ❌       |           ❌          |                  ❌                 |
+| Perform Audit       | If assigned |  If assigned  |      If assigned     |             If assigned            |
+| Close Audit Cycle   |      ✅      |       ❌       |           ❌          |                  ❌                 |
+| View Analytics      |     All     |     Asset     |      Department      |              Personal              |
+| Export Reports      |      ✅      |       ✅       |      Department      |                  ❌                 |

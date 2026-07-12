@@ -81,10 +81,15 @@ export default function OrgSetup() {
                                 background: 'rgba(255,255,255,0.03)',
                                 border: '1px solid var(--border)',
                                 borderRadius: '11px', marginBottom: '9px',
-                                display: 'flex', justifyContent: 'space-between', fontSize: '13px',
+                                display: 'flex', flexDirection: 'column', gap: '4px'
                             }}>
-                                <span style={{ fontWeight: 600 }}>{d.name}</span>
-                                <span className="mono" style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>ID: {d.id}</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                                    <span style={{ fontWeight: 600 }}>{d.name}</span>
+                                    <span className="mono" style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>ID: {d.id}</span>
+                                </div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    Head: {d.Head?.name || 'Unassigned'} | Parent: {d.Parent?.name || 'None'} | Status: {d.status || 'Active'}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -93,8 +98,53 @@ export default function OrgSetup() {
                             <h2 className="section-title" style={{ marginBottom: '18px' }}>
                                 <PlusCircle size={16} color="var(--success)" /> Add Department
                             </h2>
-                            <form onSubmit={createDept}>
-                                <Input label="Name" value={newDeptName} onChange={setNewDeptName} required placeholder="e.g. Engineering" />
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                const form = e.target;
+                                try {
+                                    await api.post('/organization/departments', {
+                                        name: form.name.value,
+                                        head_user_id: form.head_user_id.value || null,
+                                        parent_department_id: form.parent_department_id.value || null,
+                                        status: form.status.value || 'Active'
+                                    });
+                                    toast.success('Department created'); form.reset(); refetchDepts();
+                                } catch { toast.error('Failed to create department'); }
+                            }}>
+                                <Input label="Name" required placeholder="e.g. Engineering" onChange={(val) => {
+                                    const input = document.getElementById('dept_name');
+                                    if(input) input.value = val;
+                                }} />
+                                <input type="hidden" id="dept_name" name="name" />
+                                
+                                <div style={{ marginBottom: '18px' }}>
+                                    <label className="label">Department Head</label>
+                                    <select name="head_user_id" className="input">
+                                        <option value="">None</option>
+                                        {employees?.filter(e => e.role === 'dept_head' || e.role === 'admin').map(e => (
+                                            <option key={e.id} value={e.id}>{e.name} ({e.email})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                
+                                <div style={{ marginBottom: '18px' }}>
+                                    <label className="label">Parent Department</label>
+                                    <select name="parent_department_id" className="input">
+                                        <option value="">None</option>
+                                        {departments?.map(d => (
+                                            <option key={d.id} value={d.id}>{d.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div style={{ marginBottom: '18px' }}>
+                                    <label className="label">Status</label>
+                                    <select name="status" className="input" defaultValue="Active">
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+
                                 <button type="submit" className="btn btn-primary">Create Department</button>
                             </form>
                         </div>

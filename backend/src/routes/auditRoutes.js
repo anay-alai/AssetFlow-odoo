@@ -11,6 +11,7 @@ router.get('/:id/discrepancy-report', authenticate, auditController.discrepancyR
 router.put('/:cycleId/items/:assetId/verify', authenticate, auditController.verifyItemByAsset);
 router.post('/:id/auditors', authenticate, authorize('admin', 'asset_manager'), auditController.assignAuditors);
 router.put('/items/:id/verify', authenticate, auditController.verifyItem);
+router.put('/:cycle_id/verify-asset', authenticate, auditController.verifyItemByAsset);
 router.put('/:id/close', authenticate, authorize('admin', 'asset_manager'), auditController.closeCycle);
 
 module.exports = router;

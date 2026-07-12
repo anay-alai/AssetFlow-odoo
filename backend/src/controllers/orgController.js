@@ -13,8 +13,8 @@ const createDepartment = async (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', details: errors.array() } });
 
-        const { name, head_user_id, parent_department_id } = req.body;
-        const dept = await Department.create({ name, head_user_id, parent_department_id });
+        const { name, head_user_id, parent_department_id, status } = req.body;
+        const dept = await Department.create({ name, head_user_id, parent_department_id, status });
         res.status(201).json({ success: true, data: dept });
     } catch (error) { next(error); }
 };

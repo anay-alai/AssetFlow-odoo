@@ -41,6 +41,24 @@ export default function Maintenance() {
         onError: () => toast.error('Rejection failed'),
     });
 
+    const assignMutation = useMutation({
+        mutationFn: (id) => api.put(`/maintenance-requests/${id}/assign-technician`, { technician_name: 'Internal Team' }),
+        onSuccess: () => { toast.success('Technician assigned'); queryClient.invalidateQueries(['maintenance']); },
+        onError: () => toast.error('Assigning failed'),
+    });
+
+    const startMutation = useMutation({
+        mutationFn: (id) => api.put(`/maintenance-requests/${id}/start`),
+        onSuccess: () => { toast.success('Maintenance started'); queryClient.invalidateQueries(['maintenance']); },
+        onError: () => toast.error('Failed to start'),
+    });
+
+    const resolveMutation = useMutation({
+        mutationFn: (id) => api.put(`/maintenance-requests/${id}/resolve`, { resolution_notes: 'Resolved by technician' }),
+        onSuccess: () => { toast.success('Maintenance resolved'); queryClient.invalidateQueries(['maintenance']); },
+        onError: () => toast.error('Failed to resolve'),
+    });
+
     const grouped = COLUMNS.reduce((acc, col) => {
         acc[col.key] = allRequests?.filter(r => r.status === col.key) || [];
         return acc;
@@ -103,18 +121,24 @@ export default function Maintenance() {
                                     <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '10px', lineHeight: 1.5 }}>
                                         {req.issue_description}
                                     </p>
-                                    {isManager && req.status === 'Pending' && (
+                                    
+                                    {isManager && (
                                         <div style={{ display: 'flex', gap: '6px' }}>
-                                            <button
-                                                className="btn btn-soft-info"
-                                                onClick={() => approveMutation.mutate(req.id)}
-                                                style={{ flex: 1, padding: '6px', fontSize: '11px', borderRadius: '8px' }}
-                                            >Approve</button>
-                                            <button
-                                                className="btn btn-soft-danger"
-                                                onClick={() => rejectMutation.mutate(req.id)}
-                                                style={{ flex: 1, padding: '6px', fontSize: '11px', borderRadius: '8px' }}
-                                            >Reject</button>
+                                            {req.status === 'Pending' && (
+                                                <>
+                                                    <button className="btn btn-soft-info" onClick={() => approveMutation.mutate(req.id)} style={{ flex: 1, padding: '6px', fontSize: '11px', borderRadius: '8px' }}>Approve</button>
+                                                    <button className="btn btn-soft-danger" onClick={() => rejectMutation.mutate(req.id)} style={{ flex: 1, padding: '6px', fontSize: '11px', borderRadius: '8px' }}>Reject</button>
+                                                </>
+                                            )}
+                                            {req.status === 'Approved' && (
+                                                <button className="btn btn-soft-info" onClick={() => assignMutation.mutate(req.id)} style={{ flex: 1, padding: '6px', fontSize: '11px', borderRadius: '8px' }}>Assign Technician</button>
+                                            )}
+                                            {req.status === 'Technician Assigned' && (
+                                                <button className="btn btn-soft-info" onClick={() => startMutation.mutate(req.id)} style={{ flex: 1, padding: '6px', fontSize: '11px', borderRadius: '8px' }}>Start Work</button>
+                                            )}
+                                            {req.status === 'In Progress' && (
+                                                <button className="btn btn-soft-info" onClick={() => resolveMutation.mutate(req.id)} style={{ flex: 1, padding: '6px', fontSize: '11px', borderRadius: '8px' }}>Resolve</button>
+                                            )}
                                         </div>
                                     )}
                                 </div>

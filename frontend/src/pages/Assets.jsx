@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
-import { Package, Hash, MapPin, Search } from 'lucide-react';
+import { Package, Hash, MapPin, Search, Plus, X } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const statusColors = {
     'Available': '#34d399',
@@ -14,8 +16,19 @@ const statusColors = {
 };
 
 export default function Assets() {
+    const { user } = useAuth();
+    const queryClient = useQueryClient();
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [isRegistering, setIsRegistering] = useState(false);
+    
+    // Form state
+    const [formData, setFormData] = useState({
+        name: '', category_id: '', serial_number: '', acquisition_date: '',
+        acquisition_cost: '', condition: 'New', location: '', is_bookable: false
+    });
+
+    const isManager = ['admin', 'asset_manager'].includes(user?.role);
 
     const { data: assets, isLoading } = useQuery({
         queryKey: ['assets', search, statusFilter],
@@ -27,6 +40,28 @@ export default function Assets() {
         },
         refetchOnWindowFocus: true,
     });
+
+    const { data: categories } = useQuery({
+        queryKey: ['categories'],
+        queryFn: async () => (await api.get('/organization/categories')).data.data,
+        enabled: isRegistering
+    });
+
+    const registerMutation = useMutation({
+        mutationFn: async (data) => api.post('/assets', data),
+        onSuccess: () => {
+            toast.success('Asset registered successfully');
+            setIsRegistering(false);
+            setFormData({ name: '', category_id: '', serial_number: '', acquisition_date: '', acquisition_cost: '', condition: 'New', location: '', is_bookable: false });
+            queryClient.invalidateQueries(['assets']);
+        },
+        onError: (err) => toast.error(err.response?.data?.error?.message || 'Registration failed')
+    });
+
+    const handleRegister = (e) => {
+        e.preventDefault();
+        registerMutation.mutate(formData);
+    };
 
     return (
         <div>
@@ -42,7 +77,7 @@ export default function Assets() {
                         <input
                             type="text"
                             className="input"
-                            placeholder="Search by tag…"
+                            placeholder="Search by tag or name…"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             style={{ width: '220px', paddingLeft: '36px', fontSize: '13px' }}
@@ -57,6 +92,11 @@ export default function Assets() {
                         <option value="">All Status</option>
                         {Object.keys(statusColors).map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
+                    {isManager && (
+                        <button className="btn btn-primary" onClick={() => setIsRegistering(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Plus size={16} /> Register Asset
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -112,6 +152,73 @@ export default function Assets() {
                             No assets found.
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Registration Modal */}
+            {isRegistering && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div className="card" style={{ width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h2 className="section-title">Register New Asset</h2>
+                            <button onClick={() => setIsRegistering(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={20} /></button>
+                        </div>
+                        <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div>
+                                <label className="label">Name</label>
+                                <input type="text" className="input" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="label">Category</label>
+                                <select className="input" required value={formData.category_id} onChange={e => setFormData({ ...formData, category_id: e.target.value })}>
+                                    <option value="">Select Category</option>
+                                    {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <label className="label">Serial Number</label>
+                                    <input type="text" className="input" value={formData.serial_number} onChange={e => setFormData({ ...formData, serial_number: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className="label">Condition</label>
+                                    <select className="input" value={formData.condition} onChange={e => setFormData({ ...formData, condition: e.target.value })}>
+                                        <option value="New">New</option>
+                                        <option value="Good">Good</option>
+                                        <option value="Fair">Fair</option>
+                                        <option value="Poor">Poor</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <label className="label">Acquisition Date</label>
+                                    <input type="date" className="input" value={formData.acquisition_date} onChange={e => setFormData({ ...formData, acquisition_date: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className="label">Cost ($)</label>
+                                    <input type="number" step="0.01" className="input" value={formData.acquisition_cost} onChange={e => setFormData({ ...formData, acquisition_cost: e.target.value })} />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="label">Location</label>
+                                <input type="text" className="input" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <input type="checkbox" id="is_bookable" checked={formData.is_bookable} onChange={e => setFormData({ ...formData, is_bookable: e.target.checked })} />
+                                <label htmlFor="is_bookable" style={{ fontSize: '13px' }}>Shared / Bookable Resource</label>
+                            </div>
+                            
+                            <button type="submit" className="btn btn-primary" style={{ marginTop: '10px', padding: '12px' }} disabled={registerMutation.isPending}>
+                                {registerMutation.isPending ? 'Registering...' : 'Register Asset'}
+                            </button>
+                        </form>
+                    </div>
                 </div>
             )}
         </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
 import { toast } from 'react-hot-toast';
-import { FileCheck, ClipboardList } from 'lucide-react';
+import { FileCheck, ClipboardList, AlertCircle, X } from 'lucide-react';
 
 export default function Audits() {
     const queryClient = useQueryClient();
@@ -10,6 +10,7 @@ export default function Audits() {
     const [assetId, setAssetId] = useState('');
     const [notes, setNotes] = useState('');
     const [status, setStatus] = useState('Present');
+    const [selectedReportCycle, setSelectedReportCycle] = useState(null);
 
     const { data: cycles } = useQuery({
         queryKey: ['audit-cycles'],
@@ -35,6 +36,12 @@ export default function Audits() {
         mutationFn: async (id) => api.put(`/audit-cycles/${id}/close`),
         onSuccess: () => { toast.success('Audit cycle closed'); queryClient.invalidateQueries(['audit-cycles']); },
         onError: () => toast.error('Closure failed'),
+    });
+
+    const { data: reportData } = useQuery({
+        queryKey: ['audit-report', selectedReportCycle],
+        queryFn: async () => (await api.get(`/audits/${selectedReportCycle}/discrepancy-report`)).data.data,
+        enabled: !!selectedReportCycle,
     });
 
     return (
@@ -115,7 +122,7 @@ export default function Audits() {
                 {/* Audit Cycles List */}
                 <div className="card animate-in d-2">
                     <h2 className="section-title" style={{ marginBottom: '22px' }}>
-                        <ClipboardList size={16} color="var(--warning)" /> Active Cycles
+                        <ClipboardList size={16} color="var(--warning)" /> Audit Cycles
                     </h2>
 
                     {cycles?.map(c => (
@@ -126,7 +133,7 @@ export default function Audits() {
                             borderRadius: '13px', marginBottom: '12px',
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <span style={{ fontWeight: 700, fontSize: '14px', fontFamily: 'var(--font-display)' }}>Cycle #{c.id}</span>
+                                <span style={{ fontWeight: 700, fontSize: '14px', fontFamily: 'var(--font-display)' }}>Cycle #{c.id} - {c.name}</span>
                                 <span className="badge" style={{
                                     background: c.status === 'Open' ? 'rgba(52,211,153,0.15)' : 'rgba(156,163,175,0.15)',
                                     color: c.status === 'Open' ? 'var(--success)' : '#9ca3af',
@@ -137,27 +144,86 @@ export default function Audits() {
                                 </span>
                             </div>
                             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.6 }}>
+                                Scope Dept ID: {c.scope_department_id || 'All'} <br />
                                 Started: {c.start_date} <br />
                                 Ends: {c.end_date}
                             </div>
-
-                            {c.status === 'Open' && (
+                            
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                {c.status === 'Open' && (
+                                    <button
+                                        className="btn btn-soft-danger"
+                                        onClick={() => {
+                                            if (confirm('Are you sure? This will mark all unverified items as Lost.')) {
+                                                closeMutation.mutate(c.id);
+                                            }
+                                        }}
+                                        style={{ flex: 1, padding: '9px', fontSize: '12px' }}>
+                                        Close Cycle
+                                    </button>
+                                )}
                                 <button
-                                    className="btn btn-soft-danger"
-                                    onClick={() => {
-                                        if (confirm('Are you sure? This will mark all unverified items as Lost.')) {
-                                            closeMutation.mutate(c.id);
-                                        }
-                                    }}
-                                    style={{ width: '100%', padding: '9px', fontSize: '12px' }}>
-                                    Close Cycle
+                                    className="btn btn-secondary"
+                                    onClick={() => setSelectedReportCycle(c.id)}
+                                    style={{ flex: 1, padding: '9px', fontSize: '12px' }}>
+                                    View Report
                                 </button>
-                            )}
+                            </div>
                         </div>
                     ))}
                     {cycles?.length === 0 && <div className="empty-state" style={{ padding: '30px' }}>No audit cycles found.</div>}
                 </div>
             </div>
+
+            {/* Discrepancy Report Modal */}
+            {selectedReportCycle && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div className="card" style={{ width: '90%', maxWidth: '700px', maxHeight: '80vh', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h2 className="section-title"><AlertCircle size={18} color="var(--danger)" /> Discrepancy Report (Cycle #{selectedReportCycle})</h2>
+                            <button onClick={() => setSelectedReportCycle(null)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={20} /></button>
+                        </div>
+                        
+                        {!reportData ? (
+                            <div style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>Loading...</div>
+                        ) : reportData.length === 0 ? (
+                            <div className="empty-state" style={{ padding: '30px' }}>No discrepancies found for this cycle.</div>
+                        ) : (
+                            <table className="table">
+                                <thead>
+                                    <tr>
+                                        <th>Asset Tag</th>
+                                        <th>Name</th>
+                                        <th>Status</th>
+                                        <th>Notes</th>
+                                        <th>Auditor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {reportData.map(item => (
+                                        <tr key={item.id}>
+                                            <td className="mono">{item.Asset?.asset_tag}</td>
+                                            <td>{item.Asset?.name}</td>
+                                            <td>
+                                                <span className="badge" style={{ background: 'rgba(248,113,113,0.15)', color: 'var(--danger)' }}>
+                                                    {item.verification_status}
+                                                </span>
+                                            </td>
+                                            <td>{item.notes || '-'}</td>
+                                            <td>{item.Auditor?.name || '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
