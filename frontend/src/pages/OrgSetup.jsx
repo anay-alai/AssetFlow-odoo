@@ -160,23 +160,23 @@ export default function OrgSetup() {
                                         </span>
                                     </td>
                                     {user?.role === 'admin' && (
-<<<<<<< HEAD
-                                        <td style={{ padding: '10px 16px' }}>
+                                        <td>
                                             {emp.id === user?.id ? (
-                                                <span title="You cannot change your own role" style={{
-                                                    display: 'inline-flex', alignItems: 'center', gap: '5px',
-                                                    padding: '6px 12px', borderRadius: '6px', fontSize: '12px',
-                                                    fontWeight: 600, background: '#ef444415',
-                                                    color: '#ef4444', border: '1px solid #ef444430',
+                                                <span className="badge" title="You cannot change your own role" style={{
+                                                    background: 'rgba(248,113,113,0.12)',
+                                                    color: 'var(--danger)',
+                                                    borderColor: 'rgba(248,113,113,0.3)',
                                                     cursor: 'not-allowed', userSelect: 'none',
+                                                    padding: '6px 12px', fontSize: '12px',
                                                 }}>
                                                     🔒 Admin (You)
                                                 </span>
                                             ) : (
                                                 <select
+                                                    className="input"
                                                     defaultValue={emp.role}
                                                     onChange={e => updateRole(emp.id, e.target.value)}
-                                                    style={{ padding: '6px 10px', background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12px', cursor: 'pointer' }}
+                                                    style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }}
                                                 >
                                                     <option value="employee">Employee</option>
                                                     <option value="dept_head">Dept Head</option>
@@ -184,20 +184,6 @@ export default function OrgSetup() {
                                                     <option value="admin">Admin</option>
                                                 </select>
                                             )}
-=======
-                                        <td>
-                                            <select
-                                                className="input"
-                                                defaultValue={emp.role}
-                                                onChange={e => updateRole(emp.id, e.target.value)}
-                                                style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }}
-                                            >
-                                                <option value="employee">Employee</option>
-                                                <option value="dept_head">Dept Head</option>
-                                                <option value="asset_manager">Asset Manager</option>
-                                                <option value="admin">Admin</option>
-                                            </select>
->>>>>>> c13f08a (style: premium dark glassmorphism redesign across entire frontend)
                                         </td>
                                     )}
                                 </tr>
