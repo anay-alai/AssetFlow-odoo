@@ -8,7 +8,9 @@
     "start": "node src/server.js",
     "db:setup": "node scripts/setupDb.js",
     "db:seed": "node scripts/setupDb.js --seed",
+    "db:migrate": "node scripts/migrate.js",
     "db:reset-admin": "node scripts/resetAdminPassword.js",
+    "db:reset-demo": "node scripts/resetDemoPasswords.js",
     "test": "jest --runInBand"
   },
   "keywords": [],
