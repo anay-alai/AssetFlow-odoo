@@ -171,6 +171,19 @@ exports.rejectTransferRequest = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
+exports.listTransferRequests = async (req, res, next) => {
+    try {
+        const where = {};
+        if (req.query.status) where.status = req.query.status;
+        const requests = await TransferRequest.findAll({
+            where,
+            include: ['Asset', 'FromUser', 'ToUser', 'Requester', 'Approver'],
+            order: [['created_at', 'DESC']],
+        });
+        res.json({ success: true, data: requests });
+    } catch (error) { next(error); }
+};
+
 exports.getAllocationHistory = async (req, res, next) => {
     try {
         const history = await Allocation.findAll({

@@ -20,7 +20,7 @@ export default function Audits() {
 
     // Create cycle modal
     const [isCreating, setIsCreating] = useState(false);
-    const [cycleForm, setCycleForm] = useState({ name: '', start_date: '', end_date: '', scope_department_id: '' });
+    const [cycleForm, setCycleForm] = useState({ name: '', start_date: '', end_date: '', scope_department_id: '', auditor_ids: [] });
 
     const isManager = ['admin', 'asset_manager'].includes(user?.role);
 
@@ -48,14 +48,28 @@ export default function Audits() {
         enabled: isCreating,
     });
 
+    const { data: employees = [] } = useQuery({
+        queryKey: ['employees'],
+        queryFn: async () => (await api.get('/employees')).data.data,
+        enabled: isCreating,
+    });
+
     // ── Mutations ─────────────────────────────────────────────
     const createCycleMutation = useMutation({
-        mutationFn: (data) => api.post('/audit-cycles', data),
+        mutationFn: async (data) => {
+            const { auditor_ids, ...cycle } = data;
+            const res = await api.post('/audit-cycles', cycle);
+            // Assign auditors to the freshly created cycle, if any were selected.
+            if (auditor_ids?.length) {
+                await api.post(`/audit-cycles/${res.data.data.id}/auditors`, { auditor_ids });
+            }
+            return res;
+        },
         onSuccess: (res) => {
             const meta = res.data.meta;
             toast.success(`Audit cycle created with ${meta?.items_created ?? 0} assets auto-added`);
             setIsCreating(false);
-            setCycleForm({ name: '', start_date: '', end_date: '', scope_department_id: '' });
+            setCycleForm({ name: '', start_date: '', end_date: '', scope_department_id: '', auditor_ids: [] });
             queryClient.invalidateQueries(['audit-cycles']);
         },
         onError: (err) => toast.error(err.response?.data?.error?.message || 'Failed to create cycle'),
@@ -302,6 +316,23 @@ export default function Audits() {
                                 <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '5px', opacity: 0.8 }}>
                                     Leaving blank auto-adds all assets in the system.
                                 </p>
+                            </div>
+                            <div>
+                                <label className="label">Assign Auditors (optional)</label>
+                                <div style={{ maxHeight: '130px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '10px', padding: '8px' }}>
+                                    {employees.length === 0 && <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Loading employees…</p>}
+                                    {employees.map(emp => {
+                                        const checked = cycleForm.auditor_ids.includes(emp.id);
+                                        return (
+                                            <label key={emp.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 4px', fontSize: '13px', cursor: 'pointer' }}>
+                                                <input type="checkbox" checked={checked} onChange={() => {
+                                                    setCycleForm(f => ({ ...f, auditor_ids: checked ? f.auditor_ids.filter(x => x !== emp.id) : [...f.auditor_ids, emp.id] }));
+                                                }} />
+                                                {emp.name} <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>({emp.role?.replace('_', ' ')})</span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
                             </div>
                             <button type="submit" className="btn btn-primary" style={{ padding: '12px', marginTop: '4px' }} disabled={createCycleMutation.isPending}>
                                 {createCycleMutation.isPending ? 'Creating…' : 'Create Cycle'}

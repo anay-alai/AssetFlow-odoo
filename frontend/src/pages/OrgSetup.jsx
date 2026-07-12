@@ -24,7 +24,7 @@ export default function OrgSetup() {
 
     const { data: departments, refetch: refetchDepts } = useQuery({ queryKey: ['departments'], queryFn: async () => (await api.get('/departments')).data.data });
     const { data: categories, refetch: refetchCats } = useQuery({ queryKey: ['categories'], queryFn: async () => (await api.get('/categories')).data.data });
-    const { data: empResp } = useQuery({ queryKey: ['employees'], queryFn: async () => (await api.get('/employees')).data });
+    const { data: empResp, refetch: refetchEmps } = useQuery({ queryKey: ['employees'], queryFn: async () => (await api.get('/employees')).data });
     const employees = empResp?.data || [];
 
     const createDept = async (e) => {
@@ -35,11 +35,14 @@ export default function OrgSetup() {
         } catch { toast.error('Failed to create department'); }
     };
 
+    const [newCatWarranty, setNewCatWarranty] = useState('');
     const createCat = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/categories', { name: newCatName });
-            toast.success('Category created'); setNewCatName(''); refetchCats();
+            // Optional category-specific field, e.g. warranty period (months).
+            const custom_fields = newCatWarranty ? { warranty_period_months: Number(newCatWarranty) } : null;
+            await api.post('/categories', { name: newCatName, custom_fields });
+            toast.success('Category created'); setNewCatName(''); setNewCatWarranty(''); refetchCats();
         } catch { toast.error('Failed to create category'); }
     };
 
@@ -48,6 +51,22 @@ export default function OrgSetup() {
             await api.put(`/employees/${id}/role`, { role });
             toast.success('Role updated');
         } catch { toast.error('Failed to update role'); }
+    };
+
+    const toggleDeptStatus = async (d) => {
+        const next = (d.status || 'active') === 'active' ? 'inactive' : 'active';
+        try {
+            await api.put(`/departments/${d.id}`, { status: next });
+            toast.success(`Department ${next === 'active' ? 'activated' : 'deactivated'}`); refetchDepts();
+        } catch { toast.error('Failed to update department'); }
+    };
+
+    const toggleEmpStatus = async (emp) => {
+        const next = (emp.status || 'active') === 'active' ? 'inactive' : 'active';
+        try {
+            await api.put(`/employees/${emp.id}/status`, { status: next });
+            toast.success(`Employee ${next === 'active' ? 'activated' : 'deactivated'}`); refetchEmps();
+        } catch { toast.error('Failed to update status'); }
     };
 
     const tabs = ['departments', 'categories', 'employees'];
@@ -83,12 +102,21 @@ export default function OrgSetup() {
                                 borderRadius: '11px', marginBottom: '9px',
                                 display: 'flex', flexDirection: 'column', gap: '4px'
                             }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                                    <span style={{ fontWeight: 600 }}>{d.name}</span>
-                                    <span className="mono" style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>ID: {d.id}</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                                    <span style={{ fontWeight: 600 }}>
+                                        {d.name}
+                                        <span className="badge" style={{ marginLeft: '8px', fontSize: '10px', background: (d.status || 'active') === 'active' ? 'rgba(52,211,153,0.15)' : 'rgba(156,163,175,0.15)', color: (d.status || 'active') === 'active' ? 'var(--success)' : '#9ca3af' }}>
+                                            {(d.status || 'active') === 'active' ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </span>
+                                    {user?.role === 'admin' && (
+                                        <button onClick={() => toggleDeptStatus(d)} className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '11px' }}>
+                                            {(d.status || 'active') === 'active' ? 'Deactivate' : 'Activate'}
+                                        </button>
+                                    )}
                                 </div>
                                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                                    Head: {d.Head?.name || 'Unassigned'} | Parent: {d.Parent?.name || 'None'} | Status: {d.status || 'Active'}
+                                    Head: {d.Head?.name || 'Unassigned'} | Parent: {d.Parent?.name || 'None'}
                                 </div>
                             </div>
                         ))}
@@ -102,7 +130,7 @@ export default function OrgSetup() {
                                 e.preventDefault();
                                 const form = e.target;
                                 try {
-                                    await api.post('/organization/departments', {
+                                    await api.post('/departments', {
                                         name: form.name.value,
                                         head_user_id: form.head_user_id.value || null,
                                         parent_department_id: form.parent_department_id.value || null,
@@ -166,6 +194,11 @@ export default function OrgSetup() {
                                 borderRadius: '11px', marginBottom: '9px', fontSize: '13px', fontWeight: 500,
                             }}>
                                 {c.name}
+                                {c.custom_fields && Object.keys(c.custom_fields).length > 0 && (
+                                    <span style={{ marginLeft: '8px', fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 400 }}>
+                                        · {Object.entries(c.custom_fields).map(([k, v]) => `${k.replace(/_/g, ' ')}: ${v}`).join(', ')}
+                                    </span>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -176,6 +209,7 @@ export default function OrgSetup() {
                             </h2>
                             <form onSubmit={createCat}>
                                 <Input label="Name" value={newCatName} onChange={setNewCatName} required placeholder="e.g. Laptops" />
+                                <Input label="Warranty Period — months (optional)" type="number" value={newCatWarranty} onChange={setNewCatWarranty} placeholder="e.g. 24" />
                                 <button type="submit" className="btn btn-primary">Create Category</button>
                             </form>
                         </div>
@@ -188,7 +222,7 @@ export default function OrgSetup() {
                     <table className="table">
                         <thead>
                             <tr>
-                                {['Name', 'Email', 'Department', 'Role', user?.role === 'admin' && 'Promote'].filter(Boolean).map(h => (
+                                {['Name', 'Email', 'Department', 'Role', 'Status', user?.role === 'admin' && 'Promote'].filter(Boolean).map(h => (
                                     <th key={h}>{h}</th>
                                 ))}
                             </tr>
@@ -208,6 +242,20 @@ export default function OrgSetup() {
                                         }}>
                                             {emp.role?.replace('_', ' ')}
                                         </span>
+                                    </td>
+                                    <td>
+                                        {user?.role === 'admin' && emp.id !== user?.id ? (
+                                            <button onClick={() => toggleEmpStatus(emp)} className="badge" style={{
+                                                cursor: 'pointer',
+                                                background: (emp.status || 'active') === 'active' ? 'rgba(52,211,153,0.15)' : 'rgba(156,163,175,0.15)',
+                                                color: (emp.status || 'active') === 'active' ? 'var(--success)' : '#9ca3af',
+                                                border: 'none', padding: '5px 11px', fontSize: '12px',
+                                            }} title="Click to toggle">
+                                                {(emp.status || 'active') === 'active' ? 'Active' : 'Inactive'}
+                                            </button>
+                                        ) : (
+                                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{emp.status || 'active'}</span>
+                                        )}
                                     </td>
                                     {user?.role === 'admin' && (
                                         <td>

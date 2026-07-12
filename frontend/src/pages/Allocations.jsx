@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { AlertTriangle, ArrowRightLeft, Send, Undo2, RefreshCw } from 'lucide-react';
+import { AlertTriangle, ArrowRightLeft, Send, Undo2, RefreshCw, Check, XCircle, Clock } from 'lucide-react';
 
 export default function Allocations() {
     const { user } = useAuth();
@@ -11,9 +11,12 @@ export default function Allocations() {
 
     const [assetId, setAssetId] = useState('');
     const [employeeId, setEmployeeId] = useState('');
+    const [expectedReturn, setExpectedReturn] = useState('');
     const [conflictError, setConflictError] = useState(null);
     const [returnId, setReturnId] = useState('');
     const [returnNotes, setReturnNotes] = useState('');
+
+    const isApprover = ['admin', 'asset_manager', 'dept_head'].includes(user?.role);
 
     // Load assets and employees for selection dropdowns
     const { data: assets = [] } = useQuery({
@@ -64,8 +67,26 @@ export default function Allocations() {
 
     const transferMutation = useMutation({
         mutationFn: (data) => api.post('/allocations/transfer-requests', data),
-        onSuccess: () => { toast.success('Transfer request submitted'); setConflictError(null); },
+        onSuccess: () => { toast.success('Transfer request submitted'); setConflictError(null); queryClient.invalidateQueries(['transfer-requests']); },
         onError: (err) => toast.error(err.response?.data?.error?.message || 'Transfer request failed'),
+    });
+
+    // Pending transfer requests (Requested → Approved/Rejected)
+    const { data: transfers = [] } = useQuery({
+        queryKey: ['transfer-requests'],
+        queryFn: async () => (await api.get('/allocations/transfer-requests?status=Requested')).data.data,
+        refetchInterval: 20000,
+    });
+
+    const approveTransfer = useMutation({
+        mutationFn: (id) => api.put(`/allocations/transfer-requests/${id}/approve`),
+        onSuccess: () => { toast.success('Transfer approved — asset re-allocated'); queryClient.invalidateQueries(['transfer-requests']); queryClient.invalidateQueries(['assets-list']); },
+        onError: (err) => toast.error(err.response?.data?.error?.message || 'Approval failed'),
+    });
+    const rejectTransfer = useMutation({
+        mutationFn: (id) => api.put(`/allocations/transfer-requests/${id}/reject`),
+        onSuccess: () => { toast.success('Transfer rejected'); queryClient.invalidateQueries(['transfer-requests']); },
+        onError: (err) => toast.error(err.response?.data?.error?.message || 'Rejection failed'),
     });
 
     const availableAssets = assets.filter(a => a.status === 'Available');
@@ -109,7 +130,7 @@ export default function Allocations() {
                         </div>
                     )}
 
-                    <form onSubmit={e => { e.preventDefault(); allocateMutation.mutate({ asset_id: parseInt(assetId), employee_id: parseInt(employeeId) }); }}>
+                    <form onSubmit={e => { e.preventDefault(); allocateMutation.mutate({ asset_id: parseInt(assetId), employee_id: parseInt(employeeId), expected_return_date: expectedReturn || null }); }}>
                         <div style={{ marginBottom: '16px' }}>
                             <label className="label">Asset <span style={{ color: 'var(--accent)', fontSize: '11px' }}>({availableAssets.length} available)</span></label>
                             <select className="input" required value={assetId} onChange={e => { setAssetId(e.target.value); setConflictError(null); }}>
@@ -128,7 +149,7 @@ export default function Allocations() {
                                 )}
                             </select>
                         </div>
-                        <div style={{ marginBottom: '22px' }}>
+                        <div style={{ marginBottom: '16px' }}>
                             <label className="label">Employee</label>
                             <select className="input" required value={employeeId} onChange={e => setEmployeeId(e.target.value)}>
                                 <option value="">Select an employee…</option>
@@ -136,6 +157,10 @@ export default function Allocations() {
                                     <option key={emp.id} value={emp.id}>{emp.name} ({emp.email})</option>
                                 ))}
                             </select>
+                        </div>
+                        <div style={{ marginBottom: '22px' }}>
+                            <label className="label">Expected Return Date <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>(optional)</span></label>
+                            <input type="date" className="input" value={expectedReturn} onChange={e => setExpectedReturn(e.target.value)} />
                         </div>
                         <button type="submit" className="btn btn-primary" disabled={allocateMutation.isPending} style={{ width: '100%', padding: '11px' }}>
                             {allocateMutation.isPending ? 'Allocating…' : 'Allocate Asset'}
@@ -174,6 +199,36 @@ export default function Allocations() {
                     </form>
                 </div>
             </div>
+
+            {/* Pending Transfer Requests */}
+            {transfers.length > 0 && (
+                <div className="card animate-in d-3" style={{ marginTop: '24px' }}>
+                    <h2 className="section-title" style={{ marginBottom: '18px' }}>
+                        <Clock size={16} color="var(--warning)" /> Pending Transfer Requests ({transfers.length})
+                    </h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {transfers.map(tr => (
+                            <div key={tr.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', padding: '14px 16px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: '10px', flexWrap: 'wrap' }}>
+                                <div style={{ fontSize: '13px' }}>
+                                    <span className="mono" style={{ color: 'var(--accent)' }}>{tr.Asset?.asset_tag || `Asset #${tr.asset_id}`}</span>
+                                    <span style={{ color: 'var(--text-secondary)' }}> — {tr.FromUser?.name || 'unassigned'} <ArrowRightLeft size={12} style={{ verticalAlign: 'middle', margin: '0 4px' }} /> {tr.ToUser?.name || `#${tr.to_user_id}`}</span>
+                                    {tr.reason && <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px' }}>“{tr.reason}”</div>}
+                                </div>
+                                {isApprover && (
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button className="btn btn-soft-success" style={{ padding: '7px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }} disabled={approveTransfer.isPending} onClick={() => approveTransfer.mutate(tr.id)}>
+                                            <Check size={13} /> Approve
+                                        </button>
+                                        <button className="btn btn-soft-danger" style={{ padding: '7px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }} disabled={rejectTransfer.isPending} onClick={() => rejectTransfer.mutate(tr.id)}>
+                                            <XCircle size={13} /> Reject
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Currently Allocated */}
             {allocatedAssets.length > 0 && (
