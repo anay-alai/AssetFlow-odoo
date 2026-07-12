@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "db:setup": "node scripts/setupDb.js",
+    "db:seed": "node scripts/setupDb.js --seed",
     "test": "jest --runInBand"
   },
   "keywords": [],

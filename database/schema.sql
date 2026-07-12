@@ -1,5 +1,20 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- Drop existing tables so this file can be re-run cleanly (dev/hackathon reset).
+DROP TABLE IF EXISTS ActivityLogs;
+DROP TABLE IF EXISTS Notifications;
+DROP TABLE IF EXISTS AuditItems;
+DROP TABLE IF EXISTS AuditAuditors;
+DROP TABLE IF EXISTS AuditCycles;
+DROP TABLE IF EXISTS MaintenanceRequests;
+DROP TABLE IF EXISTS Bookings;
+DROP TABLE IF EXISTS TransferRequests;
+DROP TABLE IF EXISTS Allocations;
+DROP TABLE IF EXISTS Assets;
+DROP TABLE IF EXISTS AssetCategories;
+DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS Departments;
+
 CREATE TABLE Departments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
