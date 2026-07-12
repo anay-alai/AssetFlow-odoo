@@ -5,36 +5,26 @@ import { useAuth } from '../context/AuthContext';
 import { Box, CheckCircle, Wrench, Layers, TrendingUp, AlertTriangle, Clock, Calendar, ArrowLeftRight, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const KpiCard = ({ label, value, icon: Icon, color, subtext }) => (
-    <div style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        padding: '24px',
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'border-color 0.2s',
-    }}
-        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-hover)'}
-        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-    >
+const KpiCard = ({ label, value, icon: Icon, color, subtext, delay }) => (
+    <div className={`card card-hover animate-in d-${delay}`} style={{ overflow: 'hidden' }}>
         <div style={{
-            position: 'absolute', top: 0, right: 0,
-            width: '80px', height: '80px',
-            background: `${color}15`,
-            borderRadius: '0 12px 0 80px',
+            position: 'absolute', top: '-30px', right: '-30px',
+            width: '110px', height: '110px', borderRadius: '50%',
+            background: `radial-gradient(circle, ${color}22, transparent 70%)`,
+            pointerEvents: 'none',
         }} />
-        <div style={{
-            width: '40px', height: '40px', borderRadius: '10px',
-            background: `${color}20`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+        <div className="icon-tile" style={{
+            width: '42px', height: '42px',
+            background: `${color}1c`,
+            border: `1px solid ${color}30`,
             marginBottom: '16px',
+            boxShadow: `0 4px 18px ${color}20`,
         }}>
-            <Icon size={20} color={color} />
+            <Icon size={19} color={color} />
         </div>
-        <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{value ?? '—'}</div>
-        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px' }}>{label}</div>
-        {subtext && <div style={{ fontSize: '11px', color: color, marginTop: '4px' }}>{subtext}</div>}
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: '34px', fontWeight: 700, lineHeight: 1, letterSpacing: '-0.02em' }}>{value ?? '—'}</div>
+        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '8px', fontWeight: 500 }}>{label}</div>
+        {subtext && <div style={{ fontSize: '11px', color, marginTop: '4px', fontWeight: 600 }}>{subtext}</div>}
     </div>
 );
 
@@ -57,39 +47,32 @@ export default function Dashboard() {
     return (
         <div>
             {/* Header */}
-            <div style={{ marginBottom: '32px' }}>
-                <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '6px' }}>
-                    Dashboard
-                </h1>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                    Welcome back, <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{user?.name}</span>
+            <div className="animate-in" style={{ marginBottom: '32px' }}>
+                <h1 className="page-title">Dashboard</h1>
+                <p className="page-sub">
+                    Welcome back, <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{user?.name}</span>
                     {' '}&mdash; {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </p>
             </div>
 
             {/* KPI Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-                <KpiCard label="Assets Available" value={isLoading ? '...' : kpis?.assetsAvailable} icon={CheckCircle} color="#10b981" subtext="Ready to allocate" />
-                <KpiCard label="Assets Allocated" value={isLoading ? '...' : kpis?.assetsAllocated} icon={Box} color="#3b82f6" subtext="Currently in use" />
-                <KpiCard label="Maintenance Today" value={isLoading ? '...' : kpis?.maintenanceToday} icon={Wrench} color="#f59e0b" subtext="Active work orders" />
-                <KpiCard label="Active Bookings" value={isLoading ? '...' : kpis?.activeBookings} icon={Calendar} color="#6366f1" subtext="Upcoming & ongoing" />
-                <KpiCard label="Pending Transfers" value={isLoading ? '...' : kpis?.pendingTransfers} icon={ArrowLeftRight} color="#a855f7" subtext="Awaiting approval" />
-                <KpiCard label="Upcoming Returns" value={isLoading ? '...' : kpis?.upcomingReturns} icon={RotateCcw} color="#ec4899" subtext="Due in 7 days" />
+                <KpiCard delay={1} label="Assets Available" value={isLoading ? '…' : kpis?.assetsAvailable} icon={CheckCircle} color="#34d399" subtext="Ready to allocate" />
+                <KpiCard delay={2} label="Assets Allocated" value={isLoading ? '…' : kpis?.assetsAllocated} icon={Box} color="#60a5fa" subtext="Currently in use" />
+                <KpiCard delay={3} label="Maintenance Today" value={isLoading ? '…' : kpis?.maintenanceToday} icon={Wrench} color="#fbbf24" subtext="Active work orders" />
+                <KpiCard delay={4} label="Active Bookings" value={isLoading ? '…' : kpis?.activeBookings} icon={Calendar} color="#818cf8" subtext="Upcoming & ongoing" />
+                <KpiCard delay={5} label="Pending Transfers" value={isLoading ? '…' : kpis?.pendingTransfers} icon={ArrowLeftRight} color="#c084fc" subtext="Awaiting approval" />
+                <KpiCard delay={6} label="Upcoming Returns" value={isLoading ? '…' : kpis?.upcomingReturns} icon={RotateCcw} color="#f472b6" subtext="Due in 7 days" />
             </div>
 
             {/* Quick Actions */}
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
+            <div className="animate-in d-3" style={{ display: 'flex', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
                 {[
-                    { label: 'Register Asset', to: '/assets', icon: Layers, color: '#6366f1' },
-                    { label: 'Book Resource', to: '/bookings', icon: Calendar, color: '#10b981' },
-                    { label: 'Raise Maintenance', to: '/maintenance', icon: Wrench, color: '#f59e0b' },
+                    { label: 'Register Asset', to: '/assets', icon: Layers, color: '#818cf8' },
+                    { label: 'Book Resource', to: '/bookings', icon: Calendar, color: '#34d399' },
+                    { label: 'Raise Maintenance', to: '/maintenance', icon: Wrench, color: '#fbbf24' },
                 ].map(({ label, to, icon: Icon, color }) => (
-                    <Link key={label} to={to} style={{
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        padding: '12px 18px', borderRadius: '10px',
-                        background: 'var(--bg-card)', border: '1px solid var(--border)',
-                        color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500, textDecoration: 'none',
-                    }}>
+                    <Link key={label} to={to} className="btn btn-ghost" style={{ padding: '12px 20px' }}>
                         <Icon size={16} color={color} /> {label}
                     </Link>
                 ))}
@@ -97,16 +80,10 @@ export default function Dashboard() {
 
             {/* Overdue Alerts */}
             {overdueData?.length > 0 && (
-                <div style={{
-                    background: '#ef444415',
-                    border: '1px solid #ef444440',
-                    borderRadius: '12px',
-                    padding: '20px',
-                    marginBottom: '32px',
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                        <AlertTriangle size={18} color="#ef4444" />
-                        <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#ef4444' }}>
+                <div className="alert-danger animate-in d-4" style={{ padding: '22px', marginBottom: '32px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '16px' }}>
+                        <AlertTriangle size={18} color="var(--danger)" />
+                        <h2 className="section-title" style={{ color: 'var(--danger)' }}>
                             Overdue Returns ({overdueData.length})
                         </h2>
                     </div>
@@ -114,20 +91,21 @@ export default function Dashboard() {
                         {overdueData.slice(0, 5).map(alloc => (
                             <div key={alloc.id} style={{
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                padding: '12px 16px',
-                                background: 'var(--bg-secondary)',
-                                borderRadius: '8px',
+                                padding: '13px 16px',
+                                background: 'rgba(255,255,255,0.04)',
+                                border: '1px solid rgba(255,255,255,0.06)',
+                                borderRadius: '10px',
                                 fontSize: '13px',
                             }}>
                                 <div>
-                                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+                                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
                                         {alloc.Asset?.name || `Asset #${alloc.asset_id}`}
                                     </span>
                                     <span style={{ color: 'var(--text-secondary)', marginLeft: '8px' }}>
                                         — {alloc.Employee?.name || 'Unknown'}
                                     </span>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--danger)', fontWeight: 600 }}>
                                     <Clock size={13} />
                                     <span>Due: {new Date(alloc.expected_return_date).toLocaleDateString()}</span>
                                 </div>
@@ -138,32 +116,27 @@ export default function Dashboard() {
             )}
 
             {/* Quick Stats */}
-            <div style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border)',
-                borderRadius: '12px',
-                padding: '24px',
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+            <div className="card animate-in d-5">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '22px' }}>
                     <TrendingUp size={18} color="var(--accent)" />
-                    <h2 style={{ fontSize: '15px', fontWeight: 600 }}>Asset Utilization</h2>
+                    <h2 className="section-title">Asset Utilization</h2>
                 </div>
                 {kpis && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {[
-                            { label: 'Allocated', value: kpis.assetsAllocated, total: kpis.totalAssets, color: '#3b82f6' },
-                            { label: 'Available', value: kpis.assetsAvailable, total: kpis.totalAssets, color: '#10b981' },
-                            { label: 'Under Maintenance', value: kpis.assetsUnderMaintenance, total: kpis.totalAssets, color: '#f59e0b' },
+                            { label: 'Allocated', value: kpis.assetsAllocated, total: kpis.totalAssets, color: '#60a5fa' },
+                            { label: 'Available', value: kpis.assetsAvailable, total: kpis.totalAssets, color: '#34d399' },
+                            { label: 'Under Maintenance', value: kpis.assetsUnderMaintenance, total: kpis.totalAssets, color: '#fbbf24' },
                         ].map(({ label, value, total, color }) => {
                             const pct = total > 0 ? Math.round((value / total) * 100) : 0;
                             return (
                                 <div key={label}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                                        <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
-                                        <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{value} <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>({pct}%)</span></span>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '7px' }}>
+                                        <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{label}</span>
+                                        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{value} <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>({pct}%)</span></span>
                                     </div>
-                                    <div style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
-                                        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: '3px', transition: 'width 0.8s ease' }} />
+                                    <div className="progress-track">
+                                        <div className="progress-fill" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}cc, ${color})`, color }} />
                                     </div>
                                 </div>
                             );

@@ -26,60 +26,58 @@ export default function Layout() {
     ];
 
     const roleColors = {
-        admin: '#ef4444',
-        asset_manager: '#6366f1',
-        dept_head: '#f59e0b',
-        employee: '#10b981',
+        admin: '#f87171',
+        asset_manager: '#818cf8',
+        dept_head: '#fbbf24',
+        employee: '#34d399',
     };
 
     return (
-        <div style={{ display: 'flex', height: '100vh', background: 'var(--bg-primary)', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
             {/* Sidebar */}
             <aside style={{
-                width: '240px', minWidth: '240px',
-                background: 'var(--bg-secondary)',
+                width: '248px', minWidth: '248px',
+                background: 'var(--bg-glass)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
                 borderRight: '1px solid var(--border)',
                 display: 'flex', flexDirection: 'column',
+                zIndex: 10,
             }}>
                 {/* Logo */}
-                <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ padding: '22px 20px 18px', borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{
-                            width: '32px', height: '32px', borderRadius: '8px',
-                            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                            width: '38px', height: '38px', borderRadius: '11px',
+                            background: 'var(--grad-accent)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 6px 20px rgba(99,102,241,0.45)',
                         }}>
-                            <Zap size={16} color="white" />
+                            <Zap size={18} color="white" />
                         </div>
                         <div>
-                            <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text-primary)' }}>AssetFlow</div>
-                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '1px' }}>Enterprise ERP</div>
+                            <div style={{
+                                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '17px',
+                                letterSpacing: '-0.02em',
+                                background: 'linear-gradient(90deg, #fff, #a5b4fc)',
+                                WebkitBackgroundClip: 'text', backgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                            }}>AssetFlow</div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '1px', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Enterprise ERP</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Nav */}
-                <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 8px' }}>
+                <nav style={{ flex: 1, overflowY: 'auto', padding: '14px 10px' }}>
                     {navItems
                         .filter(item => !item.roles || item.roles.includes(user?.role))
                         .map(item => {
                             const Icon = item.icon;
                             const isActive = location.pathname === item.path;
                             return (
-                                <Link key={item.path} to={item.path} style={{
-                                    display: 'flex', alignItems: 'center', gap: '10px',
-                                    padding: '9px 12px', borderRadius: '8px', marginBottom: '2px',
-                                    textDecoration: 'none', fontSize: '13.5px', fontWeight: isActive ? 600 : 400,
-                                    color: isActive ? 'white' : 'var(--text-secondary)',
-                                    background: isActive
-                                        ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
-                                        : 'transparent',
-                                    transition: 'all 0.15s ease',
-                                }}
-                                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg-card)'; }}
-                                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-                                >
-                                    <Icon size={16} />
+                                <Link key={item.path} to={item.path} className={`nav-link${isActive ? ' active' : ''}`}>
+                                    <Icon size={16} style={{ opacity: isActive ? 1 : 0.75 }} />
                                     {item.label}
                                 </Link>
                             );
@@ -88,32 +86,40 @@ export default function Layout() {
 
                 {/* User */}
                 <div style={{
-                    padding: '12px 16px', borderTop: '1px solid var(--border)',
+                    margin: '10px', padding: '12px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '14px',
                     display: 'flex', alignItems: 'center', gap: '10px',
                 }}>
                     <div style={{
-                        width: '32px', height: '32px', borderRadius: '50%',
-                        background: `linear-gradient(135deg, ${roleColors[user?.role] || '#6366f1'}, #8b5cf6)`,
+                        width: '34px', height: '34px', borderRadius: '50%',
+                        background: `linear-gradient(135deg, ${roleColors[user?.role] || '#818cf8'}, #8b5cf6)`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '13px', fontWeight: 700, color: 'white', flexShrink: 0,
+                        boxShadow: `0 4px 14px ${roleColors[user?.role] || '#818cf8'}40`,
                     }}>
                         {user?.name?.[0]?.toUpperCase()}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</div>
-                        <div style={{ fontSize: '11px', color: roleColors[user?.role], textTransform: 'capitalize' }}>{user?.role?.replace('_', ' ')}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</div>
+                        <div style={{ fontSize: '11px', color: roleColors[user?.role], textTransform: 'capitalize', fontWeight: 600 }}>{user?.role?.replace('_', ' ')}</div>
                     </div>
                     <button onClick={handleLogout} title="Logout" style={{
                         background: 'none', border: 'none', cursor: 'pointer',
-                        color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', display: 'flex',
-                    }}>
+                        color: 'var(--text-secondary)', padding: '6px', borderRadius: '8px', display: 'flex',
+                        transition: 'all 0.15s',
+                    }}
+                        onMouseEnter={e => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(248,113,113,0.1)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'none'; }}
+                    >
                         <LogOut size={15} />
                     </button>
                 </div>
             </aside>
 
             {/* Main content */}
-            <main style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
+            <main style={{ flex: 1, overflowY: 'auto', padding: '36px 40px' }}>
                 <Outlet />
             </main>
         </div>
