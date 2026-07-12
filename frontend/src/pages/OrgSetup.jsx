@@ -3,36 +3,15 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
-
-const Btn = ({ children, onClick, variant = 'primary', small, disabled, style: extra }) => {
-    const base = {
-        padding: small ? '6px 14px' : '10px 20px',
-        borderRadius: '8px', border: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
-        fontSize: small ? '12px' : '13px', fontWeight: 600, transition: 'opacity 0.2s',
-        opacity: disabled ? 0.5 : 1,
-        ...extra,
-    };
-    const styles = {
-        primary: { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: 'white' },
-        danger: { background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440' },
-        ghost: { background: 'var(--bg-primary)', color: 'var(--text-secondary)', border: '1px solid var(--border)' },
-    };
-    return <button onClick={onClick} disabled={disabled} style={{ ...base, ...styles[variant] }}>{children}</button>;
-};
+import { Building2, Tags, PlusCircle } from 'lucide-react';
 
 const Input = ({ label, type = 'text', value, onChange, required, placeholder }) => (
-    <div style={{ marginBottom: '16px' }}>
-        {label && <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px' }}>{label}</label>}
+    <div style={{ marginBottom: '18px' }}>
+        {label && <label className="label">{label}</label>}
         <input
             type={type} value={value} onChange={e => onChange(e.target.value)}
             required={required} placeholder={placeholder}
-            style={{
-                width: '100%', padding: '9px 12px', background: 'var(--bg-primary)',
-                border: '1px solid var(--border)', borderRadius: '8px',
-                color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box',
-            }}
-            onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+            className="input"
         />
     </div>
 );
@@ -72,45 +51,51 @@ export default function OrgSetup() {
     };
 
     const tabs = ['departments', 'categories', 'employees'];
-    const roleColors = { admin: '#ef4444', asset_manager: '#6366f1', dept_head: '#f59e0b', employee: '#10b981' };
+    const roleColors = { admin: '#f87171', asset_manager: '#818cf8', dept_head: '#fbbf24', employee: '#34d399' };
 
     return (
         <div>
-            <div style={{ marginBottom: '24px' }}>
-                <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>Organization Setup</h1>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Manage departments, categories, and employee roles</p>
+            <div className="animate-in" style={{ marginBottom: '28px' }}>
+                <h1 className="page-title">Organization Setup</h1>
+                <p className="page-sub">Manage departments, categories, and employee roles</p>
             </div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', background: 'var(--bg-card)', borderRadius: '10px', padding: '4px', width: 'fit-content', border: '1px solid var(--border)' }}>
+            <div className="tabs animate-in d-1" style={{ marginBottom: '26px' }}>
                 {tabs.map(tab => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} style={{
-                        padding: '8px 20px', borderRadius: '7px', border: 'none', cursor: 'pointer',
-                        fontSize: '13px', fontWeight: 500, transition: 'all 0.15s',
-                        background: activeTab === tab ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'transparent',
-                        color: activeTab === tab ? 'white' : 'var(--text-secondary)',
-                        textTransform: 'capitalize',
-                    }}>{tab.replace('-', ' ')}</button>
+                    <button key={tab} className={`tab${activeTab === tab ? ' active' : ''}`} onClick={() => setActiveTab(tab)}>
+                        {tab.replace('-', ' ')}
+                    </button>
                 ))}
             </div>
 
             {activeTab === 'departments' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '16px' }}>Departments</h2>
+                    <div className="card animate-in d-2">
+                        <h2 className="section-title" style={{ marginBottom: '18px' }}>
+                            <Building2 size={16} color="var(--accent)" /> Departments
+                        </h2>
                         {departments?.map(d => (
-                            <div key={d.id} style={{ padding: '12px 16px', background: 'var(--bg-secondary)', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                                <span style={{ fontWeight: 500 }}>{d.name}</span>
-                                <span style={{ color: 'var(--text-secondary)' }}>ID: {d.id}</span>
+                            <div key={d.id} style={{
+                                padding: '13px 17px',
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '11px', marginBottom: '9px',
+                                display: 'flex', justifyContent: 'space-between', fontSize: '13px',
+                            }}>
+                                <span style={{ fontWeight: 600 }}>{d.name}</span>
+                                <span className="mono" style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>ID: {d.id}</span>
                             </div>
                         ))}
                     </div>
                     {user?.role === 'admin' && (
-                        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
-                            <h2 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '16px' }}>Add Department</h2>
+                        <div className="card animate-in d-3">
+                            <h2 className="section-title" style={{ marginBottom: '18px' }}>
+                                <PlusCircle size={16} color="var(--success)" /> Add Department
+                            </h2>
                             <form onSubmit={createDept}>
                                 <Input label="Name" value={newDeptName} onChange={setNewDeptName} required placeholder="e.g. Engineering" />
-                                <Btn>Create Department</Btn>
+                                <button type="submit" className="btn btn-primary">Create Department</button>
                             </form>
                         </div>
                     )}
@@ -119,20 +104,29 @@ export default function OrgSetup() {
 
             {activeTab === 'categories' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '16px' }}>Asset Categories</h2>
+                    <div className="card animate-in d-2">
+                        <h2 className="section-title" style={{ marginBottom: '18px' }}>
+                            <Tags size={16} color="var(--accent)" /> Asset Categories
+                        </h2>
                         {categories?.map(c => (
-                            <div key={c.id} style={{ padding: '12px 16px', background: 'var(--bg-secondary)', borderRadius: '8px', marginBottom: '8px', fontSize: '13px' }}>
+                            <div key={c.id} style={{
+                                padding: '13px 17px',
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '11px', marginBottom: '9px', fontSize: '13px', fontWeight: 500,
+                            }}>
                                 {c.name}
                             </div>
                         ))}
                     </div>
                     {user?.role === 'admin' && (
-                        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
-                            <h2 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '16px' }}>Add Category</h2>
+                        <div className="card animate-in d-3">
+                            <h2 className="section-title" style={{ marginBottom: '18px' }}>
+                                <PlusCircle size={16} color="var(--success)" /> Add Category
+                            </h2>
                             <form onSubmit={createCat}>
                                 <Input label="Name" value={newCatName} onChange={setNewCatName} required placeholder="e.g. Laptops" />
-                                <Btn>Create Category</Btn>
+                                <button type="submit" className="btn btn-primary">Create Category</button>
                             </form>
                         </div>
                     )}
@@ -140,27 +134,33 @@ export default function OrgSetup() {
             )}
 
             {activeTab === 'employees' && (
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div className="card animate-in d-2" style={{ padding: 0, overflow: 'hidden' }}>
+                    <table className="table">
                         <thead>
-                            <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+                            <tr>
                                 {['Name', 'Email', 'Department', 'Role', user?.role === 'admin' && 'Promote'].filter(Boolean).map(h => (
-                                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</th>
+                                    <th key={h}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
-                            {employees.map((emp, i) => (
-                                <tr key={emp.id} style={{ borderBottom: i < employees.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                                    <td style={{ padding: '14px 16px', fontSize: '14px', fontWeight: 500 }}>{emp.name}</td>
-                                    <td style={{ padding: '14px 16px', fontSize: '13px', color: 'var(--text-secondary)' }}>{emp.email}</td>
-                                    <td style={{ padding: '14px 16px', fontSize: '13px', color: 'var(--text-secondary)' }}>{emp.Department?.name || '—'}</td>
-                                    <td style={{ padding: '14px 16px' }}>
-                                        <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: `${roleColors[emp.role]}20`, color: roleColors[emp.role] }}>
+                            {employees.map(emp => (
+                                <tr key={emp.id}>
+                                    <td style={{ fontWeight: 600 }}>{emp.name}</td>
+                                    <td style={{ color: 'var(--text-secondary)' }}>{emp.email}</td>
+                                    <td style={{ color: 'var(--text-secondary)' }}>{emp.Department?.name || '—'}</td>
+                                    <td>
+                                        <span className="badge" style={{
+                                            background: `${roleColors[emp.role]}18`,
+                                            color: roleColors[emp.role],
+                                            borderColor: `${roleColors[emp.role]}35`,
+                                            textTransform: 'capitalize',
+                                        }}>
                                             {emp.role?.replace('_', ' ')}
                                         </span>
                                     </td>
                                     {user?.role === 'admin' && (
+<<<<<<< HEAD
                                         <td style={{ padding: '10px 16px' }}>
                                             {emp.id === user?.id ? (
                                                 <span title="You cannot change your own role" style={{
@@ -184,6 +184,20 @@ export default function OrgSetup() {
                                                     <option value="admin">Admin</option>
                                                 </select>
                                             )}
+=======
+                                        <td>
+                                            <select
+                                                className="input"
+                                                defaultValue={emp.role}
+                                                onChange={e => updateRole(emp.id, e.target.value)}
+                                                style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }}
+                                            >
+                                                <option value="employee">Employee</option>
+                                                <option value="dept_head">Dept Head</option>
+                                                <option value="asset_manager">Asset Manager</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+>>>>>>> c13f08a (style: premium dark glassmorphism redesign across entire frontend)
                                         </td>
                                     )}
                                 </tr>

@@ -21,7 +21,11 @@ const queryClient = new QueryClient();
 
 const PrivateRoute = ({ children }) => {
     const { user, loading } = useAuth();
-    if (loading) return <div>Loading...</div>;
+    if (loading) return (
+        <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+            <span className="spinner" /> Loading…
+        </div>
+    );
     return user ? children : <Navigate to="/login" />;
 };
 
@@ -30,7 +34,19 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
                 <NotificationProvider>
-                <Toaster position="top-right" toastOptions={{ style: { background: '#1e2130', color: '#fff', border: '1px solid #2a2d3e' } }} />
+                <Toaster position="top-right" toastOptions={{
+                    style: {
+                        background: 'rgba(15, 17, 30, 0.85)',
+                        backdropFilter: 'blur(16px)',
+                        color: '#eef1f8',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                        fontSize: '13.5px',
+                    },
+                    success: { iconTheme: { primary: '#34d399', secondary: '#07080f' } },
+                    error: { iconTheme: { primary: '#f87171', secondary: '#07080f' } },
+                }} />
                 <Router>
                     <Routes>
                         <Route path="/login" element={<Login />} />
