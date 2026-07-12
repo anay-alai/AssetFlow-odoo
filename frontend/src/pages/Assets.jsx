@@ -34,7 +34,7 @@ export default function Assets() {
         queryKey: ['assets', search, statusFilter],
         queryFn: async () => {
             const params = new URLSearchParams();
-            if (search) params.set('tag', search);
+            if (search) params.set('q', search);
             if (statusFilter) params.set('status', statusFilter);
             return (await api.get(`/assets/search?${params}`)).data.data;
         },
@@ -43,7 +43,7 @@ export default function Assets() {
 
     const { data: categories } = useQuery({
         queryKey: ['categories'],
-        queryFn: async () => (await api.get('/organization/categories')).data.data,
+        queryFn: async () => (await api.get('/categories')).data.data,
         enabled: isRegistering
     });
 
