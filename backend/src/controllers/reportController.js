@@ -28,13 +28,13 @@ function toCsv(rows) {
 // Asset utilization by department: allocation + booking counts grouped by department.
 exports.getUtilization = async (req, res, next) => {
     try {
-        const departments = await Department.findAll();
+        const categories = await AssetCategory.findAll();
         const data = [];
-        for (const d of departments) {
-            const assetIds = (await Asset.findAll({ where: { department_id: d.id }, attributes: ['id'] })).map((a) => a.id);
-            const allocations = assetIds.length ? await Allocation.count({ where: { asset_id: { [Op.in]: assetIds } } }) : 0;
-            const bookings = assetIds.length ? await Booking.count({ where: { resource_asset_id: { [Op.in]: assetIds } } }) : 0;
-            data.push({ department_id: d.id, department: d.name, assets: assetIds.length, allocations, bookings, activity: allocations + bookings });
+        for (const c of categories) {
+            const assets = await Asset.findAll({ where: { category_id: c.id }, attributes: ['id', 'status'] });
+            const total_assets = assets.length;
+            const allocated_count = assets.filter(a => a.status === 'Allocated').length;
+            data.push({ category_id: c.id, category_name: c.name, total_assets, allocated_count });
         }
         res.json({ success: true, data });
     } catch (error) { next(error); }
@@ -43,13 +43,15 @@ exports.getUtilization = async (req, res, next) => {
 // Maintenance frequency grouped by asset and by category.
 exports.getMaintenanceFrequency = async (req, res, next) => {
     try {
-        const byAsset = await MaintenanceRequest.findAll({
-            attributes: ['asset_id', [fn('COUNT', col('MaintenanceRequest.id')), 'count']],
-            include: [{ model: Asset, attributes: ['asset_tag', 'name', 'category_id'] }],
-            group: ['asset_id', 'Asset.id'],
-            order: [[literal('count'), 'DESC']],
-        });
-        res.json({ success: true, data: byAsset });
+        const categories = await AssetCategory.findAll();
+        const data = [];
+        for (const c of categories) {
+            const assetIds = (await Asset.findAll({ where: { category_id: c.id }, attributes: ['id'] })).map(a => a.id);
+            const repair_count = assetIds.length ? await MaintenanceRequest.count({ where: { asset_id: { [Op.in]: assetIds } } }) : 0;
+            data.push({ category_id: c.id, category_name: c.name, avg_cost: 0, repair_count });
+        }
+        data.sort((a, b) => b.repair_count - a.repair_count);
+        res.json({ success: true, data });
     } catch (error) { next(error); }
 };
 

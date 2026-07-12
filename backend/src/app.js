@@ -19,7 +19,7 @@ const activityLogRoutes = require('./routes/activityLogRoutes');
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+app.use(cors({origin: true}));
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -44,7 +44,9 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.get('/api/health', (req, res) => {
     res.json({ success: true, message: 'AssetFlow API is running' });
 });
-
+app.get("/", (req, res) => {
+    res.send("hello")
+})
 app.use((err, req, res, next) => {
     // Multer upload errors
     if (err && err.name === 'MulterError') {
