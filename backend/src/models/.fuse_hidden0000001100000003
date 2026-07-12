@@ -3,5 +3,5 @@ const sequelize = require('../config/db');
 const TransferRequest = sequelize.define('TransferRequest', {
     reason: { type: DataTypes.TEXT },
     status: { type: DataTypes.ENUM('Requested', 'Approved', 'Rejected', 'Reallocated'), defaultValue: 'Requested' },
-}, { tableName: 'TransferRequests', timestamps: true });
+}, { timestamps: true });
 module.exports = TransferRequest;

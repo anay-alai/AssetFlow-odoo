@@ -5,5 +5,5 @@ const Booking = sequelize.define('Booking', {
     end_time: { type: DataTypes.DATE, allowNull: false },
     status: { type: DataTypes.ENUM('Upcoming', 'Ongoing', 'Completed', 'Cancelled'), defaultValue: 'Upcoming' },
     purpose: { type: DataTypes.TEXT },
-}, { tableName: 'Bookings', timestamps: true });
+}, { timestamps: true });
 module.exports = Booking;
