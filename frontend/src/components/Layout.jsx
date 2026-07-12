@@ -45,21 +45,23 @@ export default function Layout() {
                 zIndex: 10,
             }}>
                 {/* Logo */}
-                <div style={{ padding: '22px 20px 18px', borderBottom: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
-                            width: '38px', height: '38px', borderRadius: '11px',
-                            background: 'var(--grad-accent)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 6px 20px rgba(99,102,241,0.45)',
-                        }}>
-                            <Zap size={18} color="white" />
-                        </div>
+                <div style={{ padding: '18px 20px 16px', borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
+                        <img
+                            src="/favicon.png"
+                            alt="AssetFlow logo"
+                            style={{
+                                width: '38px', height: '38px',
+                                borderRadius: '10px',
+                                objectFit: 'cover',
+                                boxShadow: '0 4px 16px rgba(99,102,241,0.35)',
+                            }}
+                        />
                         <div>
                             <div style={{
                                 fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '17px',
                                 letterSpacing: '-0.02em',
-                                background: 'linear-gradient(90deg, #fff, #a5b4fc)',
+                                background: 'linear-gradient(90deg, #fff 30%, #a5b4fc)',
                                 WebkitBackgroundClip: 'text', backgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
                             }}>AssetFlow</div>
@@ -67,6 +69,8 @@ export default function Layout() {
                         </div>
                     </div>
                 </div>
+
+
 
                 {/* Nav */}
                 <nav style={{ flex: 1, overflowY: 'auto', padding: '14px 10px' }}>

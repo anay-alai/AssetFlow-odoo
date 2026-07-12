@@ -71,29 +71,30 @@ export default function Login() {
                 boxShadow: '0 24px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)',
             }}>
                 {/* Logo */}
-                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                    <div style={{
-                        width: '60px', height: '60px', borderRadius: '17px',
-                        background: 'var(--grad-accent)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        margin: '0 auto 18px',
-                        boxShadow: '0 12px 40px rgba(99,102,241,0.5)',
-                    }}>
-                        <Zap size={26} color="white" />
-                    </div>
-                    <h1 style={{
-                        fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 700,
-                        letterSpacing: '-0.02em', marginBottom: '5px',
-                        background: 'linear-gradient(90deg, #fff, #a5b4fc)',
-                        WebkitBackgroundClip: 'text', backgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                    }}>
-                        Welcome back
-                    </h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                        Sign in to AssetFlow ERP
-                    </p>
-                </div>
+                <div style={{ padding: '18px 20px 16px', borderBottom: '1px solid var(--border)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
+                                        <img
+                                            src="/favicon.png"
+                                            alt="AssetFlow logo"
+                                            style={{
+                                                width: '38px', height: '38px',
+                                                borderRadius: '10px',
+                                                objectFit: 'cover',
+                                                boxShadow: '0 4px 16px rgba(99,102,241,0.35)',
+                                            }}
+                                        />
+                                        <div>
+                                            <div style={{
+                                                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '17px',
+                                                letterSpacing: '-0.02em',
+                                                background: 'linear-gradient(90deg, #fff 30%, #a5b4fc)',
+                                                WebkitBackgroundClip: 'text', backgroundClip: 'text',
+                                                WebkitTextFillColor: 'transparent',
+                                            }}>AssetFlow</div>
+                                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '1px', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Enterprise ERP</div>
+                                        </div>
+                                    </div>
+                                </div>
 
                 {error && (
                     <div className="alert-danger animate-in" style={{
