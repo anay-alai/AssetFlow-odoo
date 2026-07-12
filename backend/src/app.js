@@ -36,7 +36,9 @@ app.use('/api/notifications', notificationRoutes);
 app.get('/api/health', (req, res) => {
     res.json({ success: true, message: 'AssetFlow API is running' });
 });
-
+app.get("/", (req, res) => {
+    res.send("hello")
+})
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({
