@@ -1,19 +1,37 @@
-const { Booking, Asset, sequelize } = require('../models');
+const { Booking, Asset, User, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const { conflictWhere, validateWindow } = require('../services/booking.service');
 const { notify } = require('../services/notification.service');
 const { logActivity } = require('../utils/activityLogger');
 
+exports.getAllBookings = async (req, res, next) => {
+    try {
+        const where = {};
+        if (req.query.start && req.query.end) {
+            where.start_time = { [Op.lt]: new Date(req.query.end) };
+            where.end_time   = { [Op.gt]: new Date(req.query.start) };
+        }
+        const bookings = await Booking.findAll({
+            where,
+            include: [
+                { model: Asset, as: 'Resource', attributes: ['id','name','asset_tag','location'] },
+                { model: User, as: 'Booker',   attributes: ['id','name','email'] },
+            ],
+            order: [['start_time', 'ASC']],
+        });
+        res.json({ success: true, data: bookings });
+    } catch (error) { next(error); }
+};
+
 exports.getResourceBookings = async (req, res, next) => {
     try {
         const where = { resource_asset_id: req.params.id };
-        // Optional date filter: ?date=YYYY-MM-DD returns that day's bookings.
         if (req.query.date) {
             const day = new Date(req.query.date);
-            const start = new Date(day.setHours(0, 0, 0, 0));
-            const end = new Date(day.setHours(23, 59, 59, 999));
+            const start = new Date(day); start.setHours(0,0,0,0);
+            const end   = new Date(day); end.setHours(23,59,59,999);
             where.start_time = { [Op.lte]: end };
-            where.end_time = { [Op.gte]: start };
+            where.end_time   = { [Op.gte]: start };
         }
         const bookings = await Booking.findAll({ where, include: ['Booker'], order: [['start_time', 'ASC']] });
         res.json({ success: true, data: bookings });
