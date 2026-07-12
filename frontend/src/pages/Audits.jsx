@@ -30,6 +30,7 @@ export default function Audits() {
         queryFn: async () => (await api.get('/audit-cycles')).data.data,
     });
 
+<<<<<<< HEAD
     const { data: items = [] } = useQuery({
         queryKey: ['audit-items', cycleId],
         queryFn: async () => (await api.get(`/audit-cycles/${cycleId}/items`)).data.data,
@@ -81,6 +82,27 @@ export default function Audits() {
             queryClient.invalidateQueries(['audit-cycles']);
         },
         onError: (err) => toast.error(err.response?.data?.error?.message || 'Closure failed'),
+=======
+    const { data: items } = useQuery({
+        queryKey: ['audit-items', cycleId],
+        queryFn: async () => (await api.get(`/audit-cycles/${cycleId}/items`)).data.data,
+        enabled: !!cycleId,
+    });
+
+    const verifyMutation = useMutation({
+        mutationFn: async (data) => api.put(`/audit-cycles/${data.cycle_id}/items/${data.asset_id}/verify`, {
+            verification_status: data.verification_status,
+            notes: data.notes,
+        }),
+        onSuccess: () => { toast.success('Item verified'); setAssetId(''); setNotes(''); queryClient.invalidateQueries(['audit-items', cycleId]); queryClient.invalidateQueries(['audit-cycles']); },
+        onError: () => toast.error('Verification failed'),
+    });
+
+    const closeMutation = useMutation({
+        mutationFn: async (id) => api.put(`/audit-cycles/${id}/close`),
+        onSuccess: () => { toast.success('Audit cycle closed'); queryClient.invalidateQueries(['audit-cycles']); },
+        onError: () => toast.error('Closure failed'),
+>>>>>>> ef02ef4 (Update audit and booking functionality)
     });
 
     // ── Helpers ───────────────────────────────────────────────
@@ -131,6 +153,7 @@ export default function Audits() {
                         )}
                     </div>
 
+<<<<<<< HEAD
                     {/* Asset selector — only shown when cycle is chosen */}
                     {cycleId && (
                         <div style={{ marginBottom: '16px' }}>
@@ -157,6 +180,19 @@ export default function Audits() {
                             )}
                         </div>
                     )}
+=======
+                    <div style={{ marginBottom: '16px' }}>
+                        <label className="label">Select Asset</label>
+                        <select className="input" value={assetId} onChange={e => setAssetId(e.target.value)}>
+                            <option value="">Select an asset...</option>
+                            {items?.map(it => (
+                                <option key={it.id} value={it.Asset?.id || it.asset_id}>
+                                    {it.Asset ? `${it.Asset.id} — ${it.Asset.tag || it.Asset.name || 'unnamed'}` : `Asset #${it.asset_id}`}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+>>>>>>> ef02ef4 (Update audit and booking functionality)
 
                     {/* Status buttons */}
                     <div style={{ marginBottom: '16px' }}>
@@ -173,9 +209,13 @@ export default function Audits() {
                                         color: active ? color : 'var(--text-secondary)',
                                         borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                                         transition: 'all 0.2s',
+<<<<<<< HEAD
                                     }}>
                                         {s === 'Present' ? '✓ Present' : s === 'Missing' ? '✕ Missing' : '⚠ Damaged'}
                                     </button>
+=======
+                                    }}>{s === 'Present' ? '✓ Present' : s === 'Missing' ? '✕ Missing' : '⚠ Damaged'}</button>
+>>>>>>> ef02ef4 (Update audit and booking functionality)
                                 );
                             })}
                         </div>
@@ -189,11 +229,21 @@ export default function Audits() {
 
                     <button
                         className="btn btn-primary"
+<<<<<<< HEAD
                         onClick={() => verifyMutation.mutate({ cycle_id: cycleId, asset_id: assetId, verification_status: statusMap[status], notes })}
                         disabled={!cycleId || !assetId || verifyMutation.isPending}
                         style={{ width: '100%', padding: '12px' }}
                     >
                         {verifyMutation.isPending ? 'Recording…' : 'Record Verification'}
+=======
+                        onClick={() => {
+                            const mapping = { 'Present': 'Verified', 'Missing': 'Missing', 'Damaged': 'Damaged' };
+                            verifyMutation.mutate({ cycle_id: cycleId, asset_id: assetId, verification_status: mapping[status] || 'Pending', notes });
+                        }}
+                        disabled={!cycleId || !assetId}
+                        style={{ width: '100%', padding: '12px' }}>
+                        Record Verification
+>>>>>>> ef02ef4 (Update audit and booking functionality)
                     </button>
                 </div>
 
